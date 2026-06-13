@@ -1,0 +1,49 @@
+# =============================================================================
+# Dépendances VR Scenario Library
+# =============================================================================
+
+# --- Core ---
+requests>=2.31.0
+setuptools>=69.0.0
+
+# --- LangChain & RAG ---
+langchain-community>=0.0.20
+langchain-text-splitters>=0.0.1
+langchain-core>=0.1.20
+langchain-huggingface>=1.2.2
+
+# --- Vector Store ---
+faiss-cpu>=1.7.4
+
+# --- Embeddings ---
+# Note: local `sentence-transformers` removed to keep the Docker image lightweight.
+# Embeddings are performed via the Hugging Face Inference API using an API key.
+
+# --- Document Loaders ---
+pypdf>=4.0.0
+docx2txt>=0.8
+
+# --- Utilitaires ---
+python-dotenv>=1.0.0
+
+# --- Optionnel : Support CUDA (décommenter si GPU disponible) ---
+# faiss-gpu>=1.7.4
+
+# --- Web / API (FastAPI + server) ---
+fastapi>=0.110.0
+uvicorn>=0.29.0
+
+# --- gRPC ---
+# `grpcio-tools` is only required to generate Python stubs during build; it's
+# installed temporarily in the Docker build and not included in the runtime
+# image to reduce final size.
+grpcio>=1.50.0
+protobuf>=4.21.0
+
+# --- Voice Interaction (STT/TTS) - Optionnel ---
+# Décommentez ces lignes pour activer le mode vocal :
+# faster-whisper>=1.0.0
+# SpeechRecognition>=3.10.0
+# pyttsx3>=2.90
+# gtts>=2.5.0
+# pygame>=2.5.0  # Ou utilisez simpleaudio comme alternative légère

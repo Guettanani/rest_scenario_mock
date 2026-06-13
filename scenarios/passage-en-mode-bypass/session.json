@@ -1,0 +1,217 @@
+{
+  "scenario_id": "passage-en-mode-bypass",
+  "topic": "gaz",
+  "scenario_text": "## CONFIGURATION INITIALE DU POSTE\n- TYPE_POSTE : GAZFIO\n- METEO : JP\n- DEMANDE_CLIENT : MOY=600, TYPE=SIN, RESEAU=15\n- R0 (Robinet d'isolement amont principal) : STATUT=1, ETAT=1\n- R1 (Robinet d'isolement aval) : STATUT=1, ETAT=1\n- R2 (Robinet de détente) : STATUT=1, ETAT=1\n- R3 (Robinet de bypass) : STATUT=1, ETAT=0\n- R4 (Vanne de régulation) : STATUT=1, ETAT=0\n- VS_GAZFIO (Vanne de sécurité principale) : STATUT=1, ETAT=1\n- M (Mode opératoire du poste) : VALEUR=0\n- PM (Prise de mesure pression) : STATUT=1, ETAT=1\n\n## CONTEXTE SCÉNARIO\nLe poste est actuellement en fonctionnement normal. L'opérateur doit mettre le poste en mode \"Bypass\" pour permettre une intervention de maintenance sur le régulateur sans interrompre la livraison gaz au client. Le scénario se déroule sous la pluie, nécessitant une vigilance accrue sur les EPI et la sécurité.\n\n## OBJECTIFS PÉDAGOGIQUES\n- Maîtriser la séquence d'ouverture et de fermeture des robinets pour le passage en bypass.\n- Assurer la continuité de service (maintien de la pression de livraison).\n- Appliquer les règles de sécurité liées aux zones ATEX et au port des EPI.\n- Identifier et réagir correctement face à une anomalie de pression résiduelle.\n\n## EPI OBLIGATOIRES\n- Casque de chantier EN 397 avec jugulaire (obligatoire car site en tranchée).\n- Équipements conformes à la norme ATEX 2014/34/UE (zone EX).\n\n## ÉTAPES DU SCÉNARIO\n\n### Étape 1 : Préparation et Sécurisation\n- **Actions** : Vérification de la date de péremption et de l'état des EPI.\n- **Valeurs attendues** : EPI conformes et portés.\n- **Erreurs possibles** : Oubli de la jugulaire ou EPI périmé $\\rightarrow$ Interdiction d'accès au site.\n\n### Étape 2 : Initialisation du Bypass\n- **Actions** : \n    1. Vérifier la fermeture de la vanne de régulation **R4** (doit être à 0%).\n    2. Ouvrir le robinet d'entrée bypass **R3**.\n- **Valeurs attendues** : **R4** = 0, **R3** = 1.\n- **Erreurs possibles** : Ouverture de **R3** alors que **R4** est encore ouvert $\\rightarrow$ Risque de surpression instable.\n\n### Étape 3 : Réarmement et Mise en Pression\n- **Actions** : \n    1. Réarmer le système de déclenchement.\n    2. Ouvrir LENTEMENT la vanne de régulation **R4** pour amener la pression de livraison.\n- **Valeurs attendues** : Pression stabilisée via **R4**.\n- **Erreurs possibles** : Ouverture brutale de **R4** $\\rightarrow$ Coup de bélier ou déclenchement de la sécurité.\n\n### Étape 4 : Basculement du flux\n- **Actions** : \n    1. Ouvrir le robinet de sortie bypass **R0** après équilibrage de pression.\n    2. Fermer le robinet de sortie poste **R2**.\n    3. Fermer le robinet d'entrée poste **R1**.\n- **Valeurs attendues** : **R0** = 1, **R2** = 0, **R1** = 0.\n- **Erreurs possibles** : Fermeture de **R2** avant l'ouverture de **R0** $\\rightarrow$ Coupure totale de la livraison client.\n\n### Étape 5 : Stabilisation de la livraison\n- **Actions** : \n    1. Augmenter le débit de **R4** jusqu'à l'arrêt de la livraison du poste.\n    2. Maintenir la pression constante via ajustement précis de **R4**.\n- **Valeurs attendues** : Pression de livraison stable et conforme à la demande client.\n- **Erreurs possibles** : Mauvais ajustement de **R4** $\\rightarrow$ Sous-alimentation ou surpression.\n\n### Étape 6 : Contrôle final et Mesure\n- **Actions** : Effectuer une prise de mesure via **PM**.\n- **Valeurs attendues** : Pression conforme.\n- **Erreurs possibles** : Si pression résiduelle > 50 mbar après purge $\\rightarrow$ Vérifier l'étanchéité des vannes d'isolation amont/aval et effectuer une purge complémentaire. Si échec $\\rightarrow$ Contacter le RTE et suspendre la procédure.\n\n## CRITÈRES DE RÉUSSITE\n- Séquence d'ouverture/fermeture respectée sans interruption de service.\n- Port des EPI réglementaires validé.\n- Pression de livraison maintenue et stabilisée via **R4**.\n- Réaction correcte en cas de pression résiduelle anormale (contact RTE).",
+  "scenario_json": {
+    "scenario_id": "passage-en-mode-bypass",
+    "titre": "Passage en mode Bypass pour maintenance",
+    "etat_initial": {
+      "TYPE_POSTE": "GAZFIO",
+      "METEO": "JP",
+      "DEMANDE_CLIENT": {
+        "MOY": 600,
+        "TYPE": "SIN",
+        "RESEAU": 15
+      },
+      "R0": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R1": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R2": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R3": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "R4": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "VS_GAZFIO": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "M": {
+        "VALEUR": 0
+      },
+      "PM": {
+        "STATUT": 1,
+        "ETAT": 1
+      }
+    },
+    "etapes": [
+      {
+        "etape_id": 1,
+        "titre": "Préparation et Sécurisation",
+        "actions": [
+          {
+            "objet": "EPI",
+            "action": "verifier",
+            "valeur_attendue": "conforme"
+          }
+        ],
+        "etat_resultant": {},
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "EPI",
+            "condition": "jugulaire absente ou EPI périmé",
+            "consequence": "Interdiction d'accès au site."
+          }
+        ]
+      },
+      {
+        "etape_id": 2,
+        "titre": "Initialisation du Bypass",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "verifier",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R3",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          }
+        ],
+        "etat_resultant": {
+          "R3": {
+            "STATUT": 1,
+            "ETAT": 1
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R3",
+            "condition": "ouverture de R3 alors que R4 est ouvert",
+            "consequence": "Risque de surpression instable."
+          }
+        ]
+      },
+      {
+        "etape_id": 3,
+        "titre": "Réarmement et Mise en Pression",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "ouvrir_lentement",
+            "valeur_attendue": "stabilisation"
+          }
+        ],
+        "etat_resultant": {
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 20
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "R4",
+            "condition": "ouverture trop rapide",
+            "consequence": "Coup de bélier ou déclenchement de la sécurité."
+          }
+        ]
+      },
+      {
+        "etape_id": 4,
+        "titre": "Basculement du flux",
+        "actions": [
+          {
+            "objet": "R0",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          },
+          {
+            "objet": "R2",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R1",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          }
+        ],
+        "etat_resultant": {
+          "R0": {
+            "STATUT": 1,
+            "ETAT": 1
+          },
+          "R2": {
+            "STATUT": 1,
+            "ETAT": 0
+          },
+          "R1": {
+            "STATUT": 1,
+            "ETAT": 0
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R2",
+            "condition": "fermeture de R2 avant ouverture de R0",
+            "consequence": "Coupure totale de la livraison client."
+          }
+        ]
+      },
+      {
+        "etape_id": 5,
+        "titre": "Stabilisation de la livraison",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "ajuster",
+            "valeur_attendue": "stable"
+          }
+        ],
+        "etat_resultant": {
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 50
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "R4",
+            "condition": "mauvais ajustement du débit",
+            "consequence": "Sous-alimentation ou surpression."
+          }
+        ]
+      },
+      {
+        "etape_id": 6,
+        "titre": "Contrôle final et Mesure",
+        "actions": [
+          {
+            "objet": "PM",
+            "action": "mesurer",
+            "valeur_attendue": "conforme"
+          }
+        ],
+        "etat_resultant": {},
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "PM",
+            "condition": "pression résiduelle > 50 mbar",
+            "consequence": "Vérifier étanchéité et purger. Sinon, contacter RTE."
+          }
+        ]
+      }
+    ]
+  },
+  "history": [],
+  "created_at": "2026-06-13T11:15:10.035649+00:00",
+  "updated_at": "2026-06-13T11:15:10.035649+00:00"
+}

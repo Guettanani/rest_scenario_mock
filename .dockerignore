@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environnement virtuel
+venv/
+env/
+.venv/
+.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests
+tests/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Documentation
+docs/
+*.md
+!README.md
+!USER_GUIDE.md
+
+# CI/CD
+.github/
+
+# Docker
+.dockerignore
+docker-compose*.yml
+
+# Autres
+*.log
+.DS_Store
+Thumbs.db
+
+# === Gros dossiers de données (montes via volumes au runtime) ===
+faiss_index/
+documents/
+logs/
+output/
+scenarios/
+
+# === Fichiers de donnees lourds ===
+*.pdf
+*.docx
+*.pkl
+*.faiss
+*.npy
+*.npz
+
+# === Jupyter Notebooks ===
+*.ipynb
+.ipynb_checkpoints/
+
+# === Fichiers temporaires ===
+*.tmp
+*.bak

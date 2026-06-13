@@ -1,0 +1,79 @@
+# =============================================================================
+# Docker Compose pour le serveur REST VR Scenario Library
+# =============================================================================
+
+# version: "3.8"
+
+services:
+  # ===========================================================================
+  # Serveur REST API
+  # ===========================================================================
+  rest-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.rest
+    image: vr-scenario-lib:rest-latest
+    container_name: vr-scenario-lib-rest
+
+    ports:
+      - "8001:8001"
+
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_EMBEDDING_API_KEY=${OPENROUTER_EMBEDDING_API_KEY}
+      - OPENROUTER_API_URL=${OPENROUTER_API_URL:-https://openrouter.ai/api/v1/chat/completions}
+      - OPENROUTER_EMBEDDING_API_URL=${OPENROUTER_EMBEDDING_API_URL:-https://openrouter.ai/api/v1/embeddings}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-huggingface}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LLM_MODEL=${LLM_MODEL:-google/gemma-4-31b-it:free}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      - DEVICE=${DEVICE:-cpu}
+      - HF_INFERENCE_ENDPOINT=${HF_INFERENCE_ENDPOINT:-https://api-inference.hf.co}
+      - DOCS_DIR=/app/documents
+      - FAISS_DIR=/app/faiss_index
+      - SCENARIOS_DIR=/app/scenarios
+
+    volumes:
+      - ./documents:/app/documents:ro
+      - ./output:/app/output
+      - ./scenarios:/app/scenarios
+      - faiss-cache-rest:/app/faiss_index
+
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+        reservations:
+          memory: 2G
+          cpus: "1.0"
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    networks:
+      - rest-network
+
+# ===========================================================================
+# Volumes persistants
+# ===========================================================================
+volumes:
+  faiss-cache-rest:
+    driver: local
+    labels:
+      - "com.vr-scenario-lib.description=Cache FAISS pour le serveur REST"
+
+# ===========================================================================
+# Réseaux
+# ===========================================================================
+networks:
+  rest-network:
+    name: vr-scenario-lib-rest-network
+    driver: bridge

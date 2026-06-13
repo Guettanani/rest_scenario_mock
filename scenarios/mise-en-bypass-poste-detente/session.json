@@ -1,0 +1,205 @@
+{
+  "scenario_id": "mise-en-bypass-poste-detente",
+  "topic": "gaz",
+  "scenario_text": "## CONFIGURATION INITIALE DU POSTE\n- TYPE_POSTE : GAZFIO\n- METEO : JP\n- DEMANDE_CLIENT : MOY=600, TYPE=SIN, RESEAU=15\n- R0 (Robinet d'isolement amont principal) : STATUT=1, ETAT=1\n- R1 (Robinet d'isolement aval) : STATUT=1, ETAT=1\n- R2 (Robinet de détente) : STATUT=1, ETAT=1\n- R3 (Robinet de bypass) : STATUT=1, ETAT=0\n- R4 (Vanne de régulation) : STATUT=1, ETAT=0\n- VS_GAZFIO (Vanne de sécurité principale) : STATUT=1, ETAT=1\n- M (Mode opératoire du poste) : VALEUR=0\n- PM (Prise de mesure pression) : STATUT=1, ETAT=1\n\n## CONTEXTE SCÉNARIO\nLe technicien doit effectuer une mise en bypass du poste de détente pour maintenir la livraison gaz tout en isolant le circuit de régulation principal. L'opération se déroule sous la pluie, nécessitant une vigilance accrue sur les EPI et la sécurité ATEX.\n\n## OBJECTIFS PÉDAGOGIQUES\n- Maîtriser la séquence d'ouverture et de fermeture des robinets pour le passage en mode bypass.\n- Assurer la continuité de la livraison gaz sans rupture de pression.\n- Appliquer les règles de sécurité liées aux zones ATEX et au port des EPI.\n- Identifier et réagir correctement en cas de détection de gaz.\n\n## EPI OBLIGATOIRES\n- Casque de chantier EN 397 avec jugulaire (obligatoire site en tranchée).\n- Équipements conformes ATEX 2014/34/UE.\n\n## ÉTAPES DU SCÉNARIO\n\n### Étape 1 : Vérification préliminaire et sécurité\n- **Actions** : Vérifier l'état et la date de péremption des EPI. S'assurer de la conformité ATEX.\n- **Valeurs attendues** : EPI conformes et validés.\n- **Erreurs possibles** : Utilisation d'un EPI périmé $\\rightarrow$ Échec immédiat du scénario pour non-respect des consignes de sécurité.\n\n### Étape 2 : Préparation du bypass\n- **Actions** : \n    1. Vérifier la fermeture de la vanne de régulation **R4** (doit être à 0%).\n    2. Ouvrir le robinet d'entrée bypass **R3**.\n- **Valeurs attendues** : **R4** = 0%, **R3** = 1.\n- **Erreurs possibles** : Ouverture de **R3** alors que **R4** est encore ouvert $\\rightarrow$ Risque de surpression non maîtrisée.\n\n### Étape 3 : Réarmement et mise en pression\n- **Actions** : \n    1. Réarmer le système de déclenchement.\n    2. Ouvrir LENTEMENT la vanne de régulation **R4** pour amener la pression de livraison.\n- **Valeurs attendues** : Pression stabilisée via **R4**.\n- **Erreurs possibles** : Ouverture brutale de **R4** $\\rightarrow$ Coup de bélier ou instabilité de la pression de livraison.\n\n### Étape 4 : Isolement du poste principal\n- **Actions** : \n    1. Fermer le robinet d'entrée poste **R1**.\n    2. Fermer le robinet de sortie poste **R2**.\n- **Valeurs attendues** : **R1** = 0, **R2** = 0.\n- **Erreurs possibles** : Fermeture de **R1** avant d'avoir stabilisé la pression via **R4** $\\rightarrow$ Arrêt brutal de la livraison client.\n\n### Étape 5 : Finalisation du bypass\n- **Actions** : \n    1. Ouvrir le robinet de sortie bypass **R0** après équilibrage de pression.\n    2. Augmenter le débit de **R4** jusqu'à l'arrêt de la livraison du poste.\n    3. Ajuster **R4** pour maintenir une pression constante.\n- **Valeurs attendues** : **R0** = 1, **R4** = valeur ajustée pour maintien pression.\n- **Erreurs possibles** : Ouverture de **R0** sans équilibrage $\\rightarrow$ Choc de pression dans la tuyauterie.\n\n## CRITÈRES DE RÉUSSITE\n- Séquence d'ouverture/fermeture respectée selon le graphe d'état (R4 $\\rightarrow$ R3 $\\rightarrow$ Réarmement $\\rightarrow$ R4 $\\rightarrow$ R2 $\\rightarrow$ R1 $\\rightarrow$ R0 $\\rightarrow$ R4).\n- Aucune rupture de livraison gaz durant l'opération.\n- Port effectif des EPI réglementaires (EN 397).\n- Réaction correcte en cas d'anomalie (ex: arrêt immédiat si détection gaz > 5% LEL).",
+  "scenario_json": {
+    "scenario_id": "mise-en-bypass-poste-detente",
+    "titre": "Mise en bypass du poste de détente",
+    "etat_initial": {
+      "TYPE_POSTE": "GAZFIO",
+      "METEO": "JP",
+      "DEMANDE_CLIENT": {
+        "MOY": 600,
+        "TYPE": "SIN",
+        "RESEAU": 15
+      },
+      "R0": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R1": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R2": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R3": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "R4": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "VS_GAZFIO": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "M": {
+        "VALEUR": 0
+      },
+      "PM": {
+        "STATUT": 1,
+        "ETAT": 1
+      }
+    },
+    "etapes": [
+      {
+        "etape_id": 1,
+        "titre": "Vérification préliminaire et sécurité",
+        "actions": [
+          {
+            "objet": "EPI",
+            "action": "verifier",
+            "valeur_attendue": "conforme"
+          }
+        ],
+        "etat_resultant": {},
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "EPI",
+            "condition": "EPI périmé ou non conforme",
+            "consequence": "Échec immédiat : non-respect des consignes de sécurité."
+          }
+        ]
+      },
+      {
+        "etape_id": 2,
+        "titre": "Préparation du bypass",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "verifier",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R3",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          }
+        ],
+        "etat_resultant": {
+          "R3": {
+            "STATUT": 1,
+            "ETAT": 1
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "R4",
+            "condition": "R4 > 0 lors de l'ouverture de R3",
+            "consequence": "Risque de surpression non maîtrisée."
+          }
+        ]
+      },
+      {
+        "etape_id": 3,
+        "titre": "Réarmement et mise en pression",
+        "actions": [
+          {
+            "objet": "M",
+            "action": "rearmer",
+            "valeur_attendue": "1"
+          },
+          {
+            "objet": "R4",
+            "action": "ouvrir_lentement",
+            "valeur_attendue": "seuil_pression"
+          }
+        ],
+        "etat_resultant": {
+          "M": {
+            "VALEUR": 1
+          },
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 20
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R4",
+            "condition": "ouverture brutale de R4",
+            "consequence": "Coup de bélier ou instabilité de la pression."
+          }
+        ]
+      },
+      {
+        "etape_id": 4,
+        "titre": "Isolement du poste principal",
+        "actions": [
+          {
+            "objet": "R1",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R2",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          }
+        ],
+        "etat_resultant": {
+          "R1": {
+            "STATUT": 1,
+            "ETAT": 0
+          },
+          "R2": {
+            "STATUT": 1,
+            "ETAT": 0
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R1",
+            "condition": "fermeture de R1 avant stabilisation R4",
+            "consequence": "Arrêt brutal de la livraison client."
+          }
+        ]
+      },
+      {
+        "etape_id": 5,
+        "titre": "Finalisation du bypass",
+        "actions": [
+          {
+            "objet": "R0",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          },
+          {
+            "objet": "R4",
+            "action": "ajuster",
+            "valeur_attendue": "pression_constante"
+          }
+        ],
+        "etat_resultant": {
+          "R0": {
+            "STATUT": 1,
+            "ETAT": 1
+          },
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 50
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R0",
+            "condition": "ouverture de R0 sans équilibrage",
+            "consequence": "Choc de pression dans la tuyauterie."
+          }
+        ]
+      }
+    ]
+  },
+  "history": [],
+  "created_at": "2026-06-13T10:57:05.787048+00:00",
+  "updated_at": "2026-06-13T10:57:05.787048+00:00"
+}

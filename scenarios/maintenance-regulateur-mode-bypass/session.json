@@ -1,0 +1,218 @@
+{
+  "scenario_id": "maintenance-regulateur-mode-bypass",
+  "topic": "gaz",
+  "scenario_text": "## CONFIGURATION INITIALE DU POSTE\n- TYPE_POSTE : GAZFIO\n- METEO : JP\n- DEMANDE_CLIENT : MOY=600, TYPE=SIN, RESEAU=15\n- R0 (Robinet d'isolement amont principal) : STATUT=1, ETAT=1\n- R1 (Robinet d'isolement aval) : STATUT=1, ETAT=1\n- R2 (Robinet de détente) : STATUT=1, ETAT=1\n- R3 (Robinet de bypass) : STATUT=1, ETAT=0\n- R4 (Vanne de régulation) : STATUT=1, ETAT=0\n- VS_GAZFIO (Vanne de sécurité principale) : STATUT=1, ETAT=1\n- M (Mode opératoire du poste) : VALEUR=0\n- PM (Prise de mesure pression) : STATUT=1, ETAT=1\n\n## CONTEXTE SCÉNARIO\nLe technicien doit mettre le poste en mode bypass pour effectuer une maintenance sur le régulateur principal sans interrompre la livraison gaz au client. Le poste est actuellement en fonctionnement normal. L'intervention se déroule sous la pluie, nécessitant une vigilance accrue sur les EPI.\n\n## OBJECTIFS PÉDAGOGIQUES\n- Maîtriser la séquence d'ouverture et de fermeture des robinets pour le passage en bypass.\n- Assurer la continuité de service en maintenant la pression de livraison via la vanne de régulation.\n- Appliquer les règles de sécurité liées aux zones ATEX et au port des EPI.\n- Identifier et réagir correctement en cas d'anomalie de pression résiduelle.\n\n## EPI OBLIGATOIRES\n- Casque de chantier EN 397 avec jugulaire (obligatoire site en tranchée).\n- Équipements conformes ATEX 2014/34/UE (obligatoire zones EX).\n\n## ÉTAPES DU SCÉNARIO\n\n### Étape 1 : Vérification et Préparation\n- **Actions** : Vérifier l'état et la date de péremption des EPI. Activer la prise de mesure **PM**.\n- **Valeurs attendues** : EPI conformes, **PM** = 1.\n- **Erreurs possibles** : Oubli de la jugulaire du casque ou utilisation d'un EPI périmé $\\rightarrow$ Échec immédiat du scénario pour non-respect des règles de sécurité.\n\n### Étape 2 : Initialisation du Bypass\n- **Actions** : Vérifier la fermeture de la vanne de régulation **R4** (doit être à 0%). Ouvrir le robinet d'entrée bypass **R3**.\n- **Valeurs attendues** : **R4** = 0%, **R3** = 1.\n- **Erreurs possibles** : Ouverture de **R3** alors que **R4** est encore ouvert $\\rightarrow$ Risque de surpression instable.\n\n### Étape 3 : Réarmement et Mise en Pression\n- **Actions** : Réarmer le système de déclenchement. Ouvrir LENTEMENT la vanne de régulation **R4** pour amener la pression de livraison.\n- **Valeurs attendues** : Système réarmé, **R4** augmente progressivement (0 $\\rightarrow$ X%).\n- **Erreurs possibles** : Ouverture brutale de **R4** $\\rightarrow$ Coup de bélier ou instabilité de la pression de livraison.\n\n### Étape 4 : Équilibrage et Basculement\n- **Actions** : Ouvrir le robinet de sortie bypass **R0** après équilibrage de pression.\n- **Valeurs attendues** : **R0** = 1.\n- **Erreurs possibles** : Ouverture de **R0** avant l'équilibrage $\\rightarrow$ Choc de pression dans la tuyauterie.\n\n### Étape 5 : Isolation du poste principal\n- **Actions** : Fermer le robinet d'entrée poste **R1**, puis fermer le robinet de sortie poste **R2**.\n- **Valeurs attendues** : **R1** = 0, **R2** = 0.\n- **Erreurs possibles** : Inversion de l'ordre de fermeture $\\rightarrow$ Risque de mise en sécurité intempestive du poste.\n\n### Étape 6 : Stabilisation du débit\n- **Actions** : Augmenter le débit de **R4** jusqu'à l'arrêt de la livraison via le poste principal, puis maintenir la pression constante via ajustement de **R4**.\n- **Valeurs attendues** : **R4** ajusté pour stabiliser la pression lue sur **PM**.\n- **Erreurs possibles** : Sous-ajustement de **R4** $\\rightarrow$ Baisse de pression chez le client.\n\n## CRITÈRES DE RÉUSSITE\n- Séquence d'ouverture/fermeture respectée selon le graphe d'état (R4 $\\rightarrow$ R3 $\\rightarrow$ Réarmement $\\rightarrow$ R4 lent $\\rightarrow$ R0 $\\rightarrow$ R1 $\\rightarrow$ R2).\n- Pression de livraison maintenue stable via **R4**.\n- Aucun oubli d'EPI obligatoire.\n- En cas de pression résiduelle > 50 mbar après purge (si applicable), application de la procédure de vérification d'étanchéité.",
+  "scenario_json": {
+    "scenario_id": "maintenance-regulateur-mode-bypass",
+    "titre": "Maintenance du régulateur principal via passage en mode bypass",
+    "etat_initial": {
+      "TYPE_POSTE": "GAZFIO",
+      "METEO": "JP",
+      "DEMANDE_CLIENT": {
+        "MOY": 600,
+        "TYPE": "SIN",
+        "RESEAU": 15
+      },
+      "R0": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R1": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R2": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R3": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "R4": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "VS_GAZFIO": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "M": {
+        "VALEUR": 0
+      },
+      "PM": {
+        "STATUT": 1,
+        "ETAT": 1
+      }
+    },
+    "etapes": [
+      {
+        "etape_id": 1,
+        "titre": "Vérification et Préparation",
+        "actions": [
+          {
+            "objet": "PM",
+            "action": "activer",
+            "valeur_attendue": "1"
+          }
+        ],
+        "etat_resultant": {
+          "PM": {
+            "STATUT": 1,
+            "ETAT": 1
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "EPI",
+            "condition": "Oubli de la jugulaire ou EPI périmé",
+            "consequence": "Échec immédiat : non-respect des règles de sécurité EPI."
+          }
+        ]
+      },
+      {
+        "etape_id": 2,
+        "titre": "Initialisation du Bypass",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "verifier_fermeture",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R3",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          }
+        ],
+        "etat_resultant": {
+          "R3": {
+            "STATUT": 1,
+            "ETAT": 1
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "R4",
+            "condition": "R4 > 0 lors de l'ouverture de R3",
+            "consequence": "Risque de surpression instable."
+          }
+        ]
+      },
+      {
+        "etape_id": 3,
+        "titre": "Réarmement et Mise en Pression",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "ouvrir_lentement",
+            "valeur_attendue": "progressive"
+          }
+        ],
+        "etat_resultant": {
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 20
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R4",
+            "condition": "Ouverture brutale de la vanne",
+            "consequence": "Coup de bélier ou instabilité de la pression."
+          }
+        ]
+      },
+      {
+        "etape_id": 4,
+        "titre": "Équilibrage et Basculement",
+        "actions": [
+          {
+            "objet": "R0",
+            "action": "ouvrir",
+            "valeur_attendue": "1"
+          }
+        ],
+        "etat_resultant": {
+          "R0": {
+            "STATUT": 1,
+            "ETAT": 1
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R0",
+            "condition": "Ouverture avant équilibrage de pression",
+            "consequence": "Choc de pression dans la tuyauterie."
+          }
+        ]
+      },
+      {
+        "etape_id": 5,
+        "titre": "Isolation du poste principal",
+        "actions": [
+          {
+            "objet": "R1",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          },
+          {
+            "objet": "R2",
+            "action": "fermer",
+            "valeur_attendue": "0"
+          }
+        ],
+        "etat_resultant": {
+          "R1": {
+            "STATUT": 1,
+            "ETAT": 0
+          },
+          "R2": {
+            "STATUT": 1,
+            "ETAT": 0
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "R1",
+            "condition": "Inversion de l'ordre de fermeture R1/R2",
+            "consequence": "Risque de mise en sécurité intempestive du poste."
+          }
+        ]
+      },
+      {
+        "etape_id": 6,
+        "titre": "Stabilisation du débit",
+        "actions": [
+          {
+            "objet": "R4",
+            "action": "ajuster",
+            "valeur_attendue": "stable"
+          }
+        ],
+        "etat_resultant": {
+          "R4": {
+            "STATUT": 1,
+            "ETAT": 50
+          }
+        },
+        "conditions_erreur": [
+          {
+            "type": "valeur_hors_seuil",
+            "objet": "R4",
+            "condition": "Débit insuffisant",
+            "consequence": "Baisse de pression chez le client."
+          }
+        ]
+      }
+    ]
+  },
+  "history": [],
+  "created_at": "2026-06-13T10:59:47.043948+00:00",
+  "updated_at": "2026-06-13T10:59:47.043948+00:00"
+}

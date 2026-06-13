@@ -1,0 +1,74 @@
+{
+  "scenario_id": "erreur-scenario-non-disponible",
+  "topic": "gaz cond",
+  "scenario_text": "Désolé, les informations disponibles dans les documents fournis ne permettent pas de générer un scénario sur le thème \"**gaz cond**\". \n\nLe contexte documentaire traite de la consignation/déconsignation, de la mise en bypass et de la gestion des anomalies, mais ne contient aucune définition ou procédure spécifique relative au \"gaz cond\".",
+  "scenario_json": {
+    "scenario_id": "erreur-scenario-non-disponible",
+    "titre": "Scénario Non Disponible",
+    "etat_initial": {
+      "TYPE_POSTE": "GAZFIO",
+      "METEO": "J",
+      "DEMANDE_CLIENT": {
+        "MOY": 500,
+        "TYPE": "SIN",
+        "RESEAU": 15
+      },
+      "R0": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R1": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R2": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "R3": {
+        "STATUT": 1,
+        "ETAT": 0
+      },
+      "R4": {
+        "STATUT": 1,
+        "ETAT": 75
+      },
+      "VS_GAZFIO": {
+        "STATUT": 1,
+        "ETAT": 1
+      },
+      "M": {
+        "VALEUR": 2
+      },
+      "PM": {
+        "STATUT": 1,
+        "ETAT": 1
+      }
+    },
+    "etapes": [
+      {
+        "etape_id": 1,
+        "titre": "Information Système",
+        "actions": [
+          {
+            "objet": "M",
+            "action": "consulter",
+            "valeur_attendue": "2"
+          }
+        ],
+        "etat_resultant": {},
+        "conditions_erreur": [
+          {
+            "type": "mauvaise_action",
+            "objet": "M",
+            "condition": "Tentative de modification du mode",
+            "consequence": "Erreur : Le scénario gaz cond n'est pas disponible dans la base."
+          }
+        ]
+      }
+    ]
+  },
+  "history": [],
+  "created_at": "2026-06-13T11:30:15.841307+00:00",
+  "updated_at": "2026-06-13T11:30:15.841307+00:00"
+}
