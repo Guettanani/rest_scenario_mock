@@ -109,6 +109,60 @@ jobs:
         path: dist/
         retention-days: 7
 
+  # docker-build:
+  #   runs-on: ubuntu-latest
+  #   needs: [test, lint]
+  #   timeout-minutes: 20
+  #   permissions:
+  #     contents: read
+
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 1
+
+  #   - name: Set up Docker Buildx
+  #     uses: docker/setup-buildx-action@v3
+
+  #   - name: Login to Docker Hub
+  #     if: github.event_name != 'pull_request'
+  #     uses: docker/login-action@v3
+  #     with:
+  #       username: ${{ secrets.DOCKER_USERNAME }}
+  #       password: ${{ secrets.DOCKER_TOKEN }}
+
+  #   - name: Extract metadata
+  #     id: meta
+  #     uses: docker/metadata-action@v5
+  #     with:
+  #       images: ${{ secrets.DOCKER_USERNAME }}/vr_scenario_lib_rest
+  #       tags: |
+  #         type=ref,event=branch
+  #         type=ref,event=pr
+  #         type=sha,prefix={{branch}}-
+  #         type=raw,value=latest,enable={{is_default_branch}}
+
+  #   - name: Build Docker image
+  #     uses: docker/build-push-action@v6
+  #     with:
+  #       context: .
+  #       platforms: linux/amd64,linux/arm64
+  #       push: ${{ github.event_name != 'pull_request' }}
+  #       tags: ${{ steps.meta.outputs.tags }}
+  #       labels: ${{ steps.meta.outputs.labels }}
+  #       cache-from: type=gha
+  #       cache-to: type=gha,mode=max
+  #       load: true
+  #     continue-on-error: ${{ github.event_name == 'pull_request' }}
+
+  #   - name: Scan Docker image for vulnerabilities
+  #     uses: aquasecurity/trivy-action@0.28.0
+  #     with:
+  #       image-ref: ${{ secrets.DOCKER_USERNAME }}/vr_scenario_lib_rest:latest
+  #       format: sarif
+  #       output: trivy-results.sarif
+  #       severity: CRITICAL,HIGH
+  #       exit-code: 0
   docker-build:
     runs-on: ubuntu-latest
     needs: [test, lint]
@@ -135,7 +189,8 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ secrets.DOCKER_USERNAME }}/vr_scenario_lib_rest
+        # Utilise une valeur de repli (ex: votre pseudo) si le secret est vide (cas des PRs Dependabot)
+        images: ${{ secrets.DOCKER_USERNAME || 'karimnani' }}/vr_scenario_lib_rest
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -146,19 +201,24 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
+        # En PR, on ne construit que pour linux/amd64 pour tester le build rapidement et éviter le conflit multi-plateforme
+        platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
         push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
+        # On ne charge l'image localement que lors d'une PR (pour que Trivy puisse la scanner)
+        load: ${{ github.event_name == 'pull_request' }}
+        tags: |
+          ${{ steps.meta.outputs.tags }}
+          vr_scenario_lib_rest:test-local
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        load: true
-      continue-on-error: ${{ github.event_name == 'pull_request' }}
 
     - name: Scan Docker image for vulnerabilities
+      # Le scan local n'est exécuté que sur les PRs car l'image y est disponible localement
+      if: github.event_name == 'pull_request'
       uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: ${{ secrets.DOCKER_USERNAME }}/vr_scenario_lib_rest:latest
+        image-ref: vr_scenario_lib_rest:test-local
         format: sarif
         output: trivy-results.sarif
         severity: CRITICAL,HIGH
