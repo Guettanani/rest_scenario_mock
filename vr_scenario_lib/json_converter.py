@@ -106,10 +106,11 @@ def convert_scenario_to_json(
     )
 
     clean = clean_llm_json(raw)
-    
+
     try:
         result = parse_scenario_json(clean)
-    except JsonParsingError as exc:
+    # except JsonParsingError as exc:
+    except JsonParsingError:
         logger.warning("JSON invalide, tentative de correction...")
         # Demander au LLM de corriger le JSON
         correction_prompt = f"Le JSON suivant est invalide. Corrige-le et renvoie uniquement le JSON valide:\n\n{clean}"
@@ -121,7 +122,7 @@ def convert_scenario_to_json(
         )
         clean = clean_llm_json(raw)
         result = parse_scenario_json(clean)
-    
+
     _log_scenario_stats(result)
 
     return result

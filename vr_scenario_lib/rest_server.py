@@ -21,21 +21,29 @@ from __future__ import annotations
 
 import logging
 import os
-import signal
-import sys
+# import signal
+# import sys
 import time
 from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
+#, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
-from vr_scenario_lib import (build_llm_config, create_embeddings,
-                             create_retriever, load_vectorstore, run_pipeline,
-                             save_vectorstore, scan_directory, split_documents)
+from vr_scenario_lib import (
+    build_llm_config,
+    create_embeddings,
+    create_retriever,
+    load_vectorstore,
+    run_pipeline,
+    save_vectorstore,
+    scan_directory,
+    split_documents,
+)
 from vr_scenario_lib.scenario_store import list_sessions, load_session
 from vr_scenario_lib.vectorstore import build_vectorstore
 
@@ -89,25 +97,31 @@ def initialize_state(
     embedding_fallback_models = None
     if os.environ.get("EMBEDDING_FALLBACK_MODELS"):
         embedding_fallback_models = [
-            m.strip() for m in os.environ["EMBEDDING_FALLBACK_MODELS"].split(",") if m.strip()
+            m.strip()
+            for m in os.environ["EMBEDDING_FALLBACK_MODELS"].split(",")
+            if m.strip()
         ]
 
     embedding_provider = os.environ.get("EMBEDDING_PROVIDER")
     if embedding_provider and embedding_provider.strip().lower() == "openrouter":
-        embedding_api_key = (
-            os.environ.get("OPENROUTER_EMBEDDING_API_KEY")
-            or os.environ.get("OPENROUTER_API_KEY")
-        )
-        embedding_api_url = (
-            os.environ.get("OPENROUTER_EMBEDDING_API_URL")
-            or os.environ.get("OPENROUTER_API_URL")
-        )
+        embedding_api_key = os.environ.get(
+            "OPENROUTER_EMBEDDING_API_KEY"
+        ) or os.environ.get("OPENROUTER_API_KEY")
+        embedding_api_url = os.environ.get(
+            "OPENROUTER_EMBEDDING_API_URL"
+        ) or os.environ.get("OPENROUTER_API_URL")
     else:
-        embedding_api_key = os.environ.get("HUGGINGFACE_API_KEY") or os.environ.get("HF_TOKEN")
-        embedding_api_url = os.environ.get("HF_INFERENCE_ENDPOINT") or os.environ.get("HUGGINGFACE_API_URL")
+        embedding_api_key = os.environ.get("HUGGINGFACE_API_KEY") or os.environ.get(
+            "HF_TOKEN"
+        )
+        embedding_api_url = os.environ.get("HF_INFERENCE_ENDPOINT") or os.environ.get(
+            "HUGGINGFACE_API_URL"
+        )
 
     _server_state["embeddings"] = create_embeddings(
-        model_name=os.environ.get("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+        model_name=os.environ.get(
+            "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
+        ),
         device=os.environ.get("DEVICE", "cpu"),
         provider=embedding_provider,
         api_key=embedding_api_key,
@@ -117,16 +131,24 @@ def initialize_state(
     logger.info("Embeddings initialisés")
 
     # Vectorstore (charger ou créer)
-    _server_state["vectorstore"] = load_vectorstore(faiss_dir, _server_state["embeddings"])
+    _server_state["vectorstore"] = load_vectorstore(
+        faiss_dir, _server_state["embeddings"]
+    )
     if _server_state["vectorstore"] is None:
         logger.info("Création de l'index FAISS depuis %s...", docs_dir)
         raw_docs = scan_directory(docs_dir)
         chunks = split_documents(raw_docs)
-        _server_state["vectorstore"] = build_vectorstore(chunks, _server_state["embeddings"])
+        _server_state["vectorstore"] = build_vectorstore(
+            chunks, _server_state["embeddings"]
+        )
         save_vectorstore(_server_state["vectorstore"], faiss_dir)
-        logger.info("Index FAISS créé: %d vecteurs", _server_state["vectorstore"].index.ntotal)
+        logger.info(
+            "Index FAISS créé: %d vecteurs", _server_state["vectorstore"].index.ntotal
+        )
     else:
-        logger.info("Index FAISS chargé: %d vecteurs", _server_state["vectorstore"].index.ntotal)
+        logger.info(
+            "Index FAISS chargé: %d vecteurs", _server_state["vectorstore"].index.ntotal
+        )
 
     # Retriever
     _server_state["retriever"] = create_retriever(_server_state["vectorstore"])
@@ -141,10 +163,14 @@ def refresh_index() -> None:
     logger.info("Reconstruction de l'index FAISS...")
     raw_docs = scan_directory(_server_state["docs_dir"])
     chunks = split_documents(raw_docs)
-    _server_state["vectorstore"] = build_vectorstore(chunks, _server_state["embeddings"])
+    _server_state["vectorstore"] = build_vectorstore(
+        chunks, _server_state["embeddings"]
+    )
     save_vectorstore(_server_state["vectorstore"], _server_state["faiss_dir"])
     _server_state["retriever"] = create_retriever(_server_state["vectorstore"])
-    logger.info("Index reconstruit: %d vecteurs", _server_state["vectorstore"].index.ntotal)
+    logger.info(
+        "Index reconstruit: %d vecteurs", _server_state["vectorstore"].index.ntotal
+    )
 
 
 # =============================================================================
@@ -154,6 +180,7 @@ def refresh_index() -> None:
 
 class GenerateRequest(BaseModel):
     """Requête de génération de scénario."""
+
     topic: str = Field(..., min_length=1, description="Sujet du scénario à générer")
     custom_prompt: str = Field("", description="Consignes supplémentaires optionnelles")
     store: bool = Field(True, description="Sauvegarder le scénario dans l'historique")
@@ -161,6 +188,7 @@ class GenerateRequest(BaseModel):
 
 class GenerateResponse(BaseModel):
     """Réponse de génération de scénario."""
+
     success: bool
     scenario_id: str = ""
     titre: str = ""
@@ -171,6 +199,7 @@ class GenerateResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Réponse du health check."""
+
     status: str
     uptime_seconds: int
     vectorstore_size: int
@@ -179,6 +208,7 @@ class HealthResponse(BaseModel):
 
 class ScenarioSummary(BaseModel):
     """Résumé d'un scénario sauvegardé."""
+
     scenario_id: str
     topic: str
     titre: str = ""
@@ -189,12 +219,14 @@ class ScenarioSummary(BaseModel):
 
 class ScenarioListResponse(BaseModel):
     """Liste des scénarios sauvegardés."""
+
     scenarios: list[ScenarioSummary] = []
     total: int = 0
 
 
 class RefreshResponse(BaseModel):
     """Réponse de reconstruction d'index."""
+
     success: bool
     vectorstore_size: int = 0
     message: str = ""
@@ -203,6 +235,7 @@ class RefreshResponse(BaseModel):
 
 class DocumentInfo(BaseModel):
     """Information sur un document indexé."""
+
     filename: str
     path: str
     size_bytes: int
@@ -211,6 +244,7 @@ class DocumentInfo(BaseModel):
 
 class DocumentsResponse(BaseModel):
     """Liste des documents indexés."""
+
     documents: list[DocumentInfo] = []
     total: int = 0
 
@@ -228,8 +262,11 @@ async def lifespan(app: FastAPI):
     docs_dir = os.environ.get("DOCS_DIR", DEFAULT_DOCS_DIR)
     faiss_dir = os.environ.get("FAISS_DIR", DEFAULT_FAISS_DIR)
     scenarios_dir = os.environ.get("SCENARIOS_DIR", DEFAULT_SCENARIOS_DIR)
-    initialize_state(docs_dir=docs_dir, faiss_dir=faiss_dir, scenarios_dir=scenarios_dir)
+    initialize_state(
+        docs_dir=docs_dir, faiss_dir=faiss_dir, scenarios_dir=scenarios_dir
+    )
     yield
+
 
 # =============================================================================
 # Application FastAPI
@@ -297,7 +334,8 @@ async def swagar():
 @app.get("/swagar/web", response_class=HTMLResponse, tags=["System"])
 async def swagar_web():
     """Endpoint swagar - retourne une page web de présentation."""
-    html_content = """<!DOCTYPE html>
+    html_content = (
+        """<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -380,7 +418,9 @@ async def swagar_web():
         <div class="swagar-message">
             <p>Swaggar ! Le serveur VR Scenario Library est opérationnel !</p>
             <div class="status">Succès</div>
-            <div class="timestamp">Timestamp: """ + str(int(time.time())) + """</div>
+            <div class="timestamp">Timestamp: """
+        + str(int(time.time()))
+        + """</div>
         </div>
         
         <div class="api-info">
@@ -396,11 +436,14 @@ async def swagar_web():
         </div>
     </div>
 </body>
-</html>""" 
+</html>"""
+    )
     return HTMLResponse(content=html_content)
 
 
-@app.post("/api/v1/scenario/generate", response_model=GenerateResponse, tags=["Scenarios"])
+@app.post(
+    "/api/v1/scenario/generate", response_model=GenerateResponse, tags=["Scenarios"]
+)
 async def generate_scenario(request: GenerateRequest):
     """Génère un scénario VR à partir d'un sujet.
 
@@ -408,16 +451,22 @@ async def generate_scenario(request: GenerateRequest):
     """
     topic = request.topic.strip()
     if not topic:
-        raise HTTPException(status_code=400, detail="Le sujet (topic) ne peut pas être vide.")
+        raise HTTPException(
+            status_code=400, detail="Le sujet (topic) ne peut pas être vide."
+        )
 
     if not _server_state["initialized"]:
-        raise HTTPException(status_code=503, detail="Le serveur n'est pas encore initialisé.")
+        raise HTTPException(
+            status_code=503, detail="Le serveur n'est pas encore initialisé."
+        )
 
     logger.info("=" * 70)
     logger.info("REQUÊTE REST GenerateScenario REÇUE")
     logger.info("  Topic demandé    : '%s'", topic[:100])
     logger.info("  store            : %s", bool(request.store))
-    logger.info("  Modèle LLM       : %s", _server_state["llm_config"].get("model", "N/A"))
+    logger.info(
+        "  Modèle LLM       : %s", _server_state["llm_config"].get("model", "N/A")
+    )
     logger.info("  Vecteurs FAISS   : %d", _server_state["vectorstore"].index.ntotal)
     if request.custom_prompt:
         logger.info("  Custom prompt    : %s", request.custom_prompt[:200])
@@ -535,6 +584,7 @@ async def get_documents():
 # Point d'entrée
 # =============================================================================
 
+
 def serve(
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
@@ -570,12 +620,21 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Serveur REST VR Scenario Library")
-    parser.add_argument("--host", type=str, default=DEFAULT_HOST, help="Adresse d'écoute")
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port d'écoute")
-    parser.add_argument("--docs-dir", type=str, default=DEFAULT_DOCS_DIR, help="Dossier des documents")
-    parser.add_argument("--faiss-dir", type=str, default=DEFAULT_FAISS_DIR, help="Dossier cache FAISS")
     parser.add_argument(
-        "--scenarios-dir", type=str, default=DEFAULT_SCENARIOS_DIR, help="Dossier scénarios"
+        "--host", type=str, default=DEFAULT_HOST, help="Adresse d'écoute"
+    )
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port d'écoute")
+    parser.add_argument(
+        "--docs-dir", type=str, default=DEFAULT_DOCS_DIR, help="Dossier des documents"
+    )
+    parser.add_argument(
+        "--faiss-dir", type=str, default=DEFAULT_FAISS_DIR, help="Dossier cache FAISS"
+    )
+    parser.add_argument(
+        "--scenarios-dir",
+        type=str,
+        default=DEFAULT_SCENARIOS_DIR,
+        help="Dossier scénarios",
     )
 
     args = parser.parse_args()

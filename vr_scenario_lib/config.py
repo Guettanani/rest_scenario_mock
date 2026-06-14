@@ -63,11 +63,13 @@ DEFAULT_MODEL: str = "meta-llama/llama-3.1-8b-instruct:free"
 DEFAULT_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
 
 DEFAULT_FALLBACK_MODELS: list[str] = [
-    "google/gemma-4-31b-it:free",           # Vision + Tools, 262K ctx
-    "nvidia/nemotron-3-super-120b-a12b:free", # Tools, 1M ctx
-    "openai/gpt-oss-120b:free",              # Tools, 131K ctx
-    "meta-llama/llama-3.2-3b-instruct:free", # Léger, fallback final
+    "google/gemma-4-31b-it:free",  # Vision + Tools, 262K ctx
+    "nvidia/nemotron-3-super-120b-a12b:free",  # Tools, 1M ctx
+    "openai/gpt-oss-120b:free",  # Tools, 131K ctx
+    "meta-llama/llama-3.2-3b-instruct:free",  # Léger, fallback final
 ]
+
+
 class LLMConfig(TypedDict, total=False):
     """Configuration pour l'appel LLM.
 
@@ -128,7 +130,13 @@ def build_llm_config(
     Raises:
         ValueError: Si aucun token n'est fourni ni trouvé dans l'environnement.
     """
-    resolved_token = token or openrouter_api_key or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_API_KEY")
+    resolved_token = (
+        token
+        or openrouter_api_key
+        or os.environ.get("OPENROUTER_API_KEY")
+        or os.environ.get("HF_TOKEN")
+        or os.environ.get("HUGGINGFACE_API_KEY")
+    )
     if not resolved_token:
         raise ValueError(
             "Token OpenRouter ou HuggingFace requis. Passez-le en paramètre ou "
@@ -138,44 +146,77 @@ def build_llm_config(
     resolved_api_url = api_url or openrouter_api_url
     if resolved_api_url is None:
         if openrouter_api_key or os.environ.get("OPENROUTER_API_KEY"):
-            resolved_api_url = os.environ.get("OPENROUTER_API_URL", DEFAULT_OPENROUTER_API_URL)
+            resolved_api_url = os.environ.get(
+                "OPENROUTER_API_URL", DEFAULT_OPENROUTER_API_URL
+            )
         else:
             resolved_api_url = os.environ.get("API_URL", DEFAULT_API_URL)
 
     import logging
+
     _logger = logging.getLogger(__name__)
 
-    resolved_model = model or os.environ.get('LLM_MODEL', DEFAULT_MODEL)
+    resolved_model = model or os.environ.get("LLM_MODEL", DEFAULT_MODEL)
     resolved_fallback_models = fallback_models or DEFAULT_FALLBACK_MODELS
     # resolved_max_tokens = max_tokens or int(os.environ.get('MAX_TOKENS', DEFAULT_MAX_TOKENS))
-    resolved_max_tokens = max_tokens if max_tokens is not None else int(os.environ.get('MAX_TOKENS', DEFAULT_MAX_TOKENS))
+    resolved_max_tokens = (
+        max_tokens
+        if max_tokens is not None
+        else int(os.environ.get("MAX_TOKENS", DEFAULT_MAX_TOKENS))
+    )
     # resolved_temperature = temperature or float(os.environ.get('TEMPERATURE', DEFAULT_TEMPERATURE))
-    resolved_temperature = temperature if temperature is not None else float(os.environ.get('TEMPERATURE', DEFAULT_TEMPERATURE))
+    resolved_temperature = (
+        temperature
+        if temperature is not None
+        else float(os.environ.get("TEMPERATURE", DEFAULT_TEMPERATURE))
+    )
     # resolved_timeout = timeout or int(os.environ.get('TIMEOUT', DEFAULT_TIMEOUT_SECONDS))
-    resolved_timeout = timeout if timeout is not None else int(os.environ.get('TIMEOUT', DEFAULT_TIMEOUT_SECONDS))
+    resolved_timeout = (
+        timeout
+        if timeout is not None
+        else int(os.environ.get("TIMEOUT", DEFAULT_TIMEOUT_SECONDS))
+    )
     # resolved_max_retries = max_retries or int(os.environ.get('MAX_RETRIES', 3))
-    resolved_max_retries = max_retries if max_retries is not None else int(os.environ.get('MAX_RETRIES', 3))
+    resolved_max_retries = (
+        max_retries
+        if max_retries is not None
+        else int(os.environ.get("MAX_RETRIES", 3))
+    )
     # resolved_backoff = retry_backoff_factor or float(os.environ.get('RETRY_BACKOFF_FACTOR', 2.0))
-    resolved_backoff = retry_backoff_factor if retry_backoff_factor is not None else float(os.environ.get('RETRY_BACKOFF_FACTOR', 2.0))
-
+    resolved_backoff = (
+        retry_backoff_factor
+        if retry_backoff_factor is not None
+        else float(os.environ.get("RETRY_BACKOFF_FACTOR", 2.0))
+    )
 
     # Masquer le token pour les logs
-    masked_token = resolved_token[:8] + '***' + resolved_token[-4:] if len(resolved_token) > 12 else '***REDACTED***'
+    masked_token = (
+        resolved_token[:8] + "***" + resolved_token[-4:]
+        if len(resolved_token) > 12
+        else "***REDACTED***"
+    )
 
-    _logger.info('=' * 70)
-    _logger.info('CONFIGURATION LLM DÉTAILLÉE')
-    _logger.info('=' * 70)
-    _logger.info('  Modèle principal    : %s', resolved_model)
-    _logger.info('  API URL             : %s', resolved_api_url)
-    _logger.info('  Token (masqué)      : %s', masked_token)
-    _logger.info('  Token source        : %s', 'OPENROUTER_API_KEY' if os.environ.get('OPENROUTER_API_KEY') else 'HF_TOKEN' if os.environ.get('HF_TOKEN') else 'paramètre')
-    _logger.info('  Fallback modèles    : %s', resolved_fallback_models)
-    _logger.info('  Max tokens          : %d', resolved_max_tokens)
-    _logger.info('  Température         : %.2f', resolved_temperature)
-    _logger.info('  Timeout (s)         : %d', resolved_timeout)
-    _logger.info('  Max retries         : %d', resolved_max_retries)
-    _logger.info('  Backoff factor      : %.1f', resolved_backoff)
-    _logger.info('=' * 70)
+    _logger.info("=" * 70)
+    _logger.info("CONFIGURATION LLM DÉTAILLÉE")
+    _logger.info("=" * 70)
+    _logger.info("  Modèle principal    : %s", resolved_model)
+    _logger.info("  API URL             : %s", resolved_api_url)
+    _logger.info("  Token (masqué)      : %s", masked_token)
+    _logger.info(
+        "  Token source        : %s",
+        (
+            "OPENROUTER_API_KEY"
+            if os.environ.get("OPENROUTER_API_KEY")
+            else "HF_TOKEN" if os.environ.get("HF_TOKEN") else "paramètre"
+        ),
+    )
+    _logger.info("  Fallback modèles    : %s", resolved_fallback_models)
+    _logger.info("  Max tokens          : %d", resolved_max_tokens)
+    _logger.info("  Température         : %.2f", resolved_temperature)
+    _logger.info("  Timeout (s)         : %d", resolved_timeout)
+    _logger.info("  Max retries         : %d", resolved_max_retries)
+    _logger.info("  Backoff factor      : %.1f", resolved_backoff)
+    _logger.info("=" * 70)
 
     return LLMConfig(
         api_url=resolved_api_url,

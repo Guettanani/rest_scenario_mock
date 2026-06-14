@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class PipelineError(Exception):
     """Erreur lors de l'exécution du pipeline."""
+
     pass
 
 
@@ -76,8 +77,14 @@ def run_pipeline(
 
     try:
         logger.info("[PIPELINE ÉTAPE 1/3] Génération du scénario texte...")
-        scenario_text, sources = generate_scenario(topic, retriever, llm_config, custom_prompt=custom_prompt)
-        logger.info("[PIPELINE ÉTAPE 1/3] OK — Scénario texte : %d car., %d sources", len(scenario_text), len(sources))
+        scenario_text, sources = generate_scenario(
+            topic, retriever, llm_config, custom_prompt=custom_prompt
+        )
+        logger.info(
+            "[PIPELINE ÉTAPE 1/3] OK — Scénario texte : %d car., %d sources",
+            len(scenario_text),
+            len(sources),
+        )
     except Exception as exc:
         logger.exception("[PIPELINE ÉTAPE 1/3] ÉCHEC — Génération du scénario")
         raise PipelineError(f"Échec de la génération du scénario : {exc}") from exc
@@ -85,7 +92,9 @@ def run_pipeline(
     try:
         logger.info("[PIPELINE ÉTAPE 2/3] Conversion en JSON Unity...")
         result = convert_scenario_to_json(scenario_text, llm_config)
-        logger.info("[PIPELINE ÉTAPE 2/3] OK — JSON converti, clés: %s", list(result.keys()))
+        logger.info(
+            "[PIPELINE ÉTAPE 2/3] OK — JSON converti, clés: %s", list(result.keys())
+        )
     except Exception as exc:
         logger.exception("[PIPELINE ÉTAPE 2/3] ÉCHEC — Conversion JSON")
         raise PipelineError(f"Échec de la conversion JSON : {exc}") from exc
@@ -124,7 +133,9 @@ def validate_scenario_structure(data: dict[str, Any]) -> None:
     required_keys = ["scenario_id", "titre", "etat_initial", "etapes"]
     for key in required_keys:
         if key not in data:
-            raise JsonParsingError(f"Clé obligatoire manquante dans le JSON généré : '{key}'")
+            raise JsonParsingError(
+                f"Clé obligatoire manquante dans le JSON généré : '{key}'"
+            )
 
     # Validation etat_initial
     etat_initial = data.get("etat_initial")
@@ -140,14 +151,20 @@ def validate_scenario_structure(data: dict[str, Any]) -> None:
         if not isinstance(etape, dict):
             raise JsonParsingError(f"L'étape {idx} n'est pas un dictionnaire.")
         if "etape_id" not in etape or "titre" not in etape:
-            raise JsonParsingError(f"Clé 'etape_id' ou 'titre' manquante dans l'étape {idx}.")
-        
+            raise JsonParsingError(
+                f"Clé 'etape_id' ou 'titre' manquante dans l'étape {idx}."
+            )
+
         # Validation actions
         actions = etape.get("actions", [])
         if not isinstance(actions, list):
-            raise JsonParsingError(f"Le champ 'actions' de l'étape {idx} doit être une liste.")
-            
+            raise JsonParsingError(
+                f"Le champ 'actions' de l'étape {idx} doit être une liste."
+            )
+
         # Validation conditions_erreur
         erreurs = etape.get("conditions_erreur", [])
         if not isinstance(erreurs, list):
-            raise JsonParsingError(f"Le champ 'conditions_erreur' de l'étape {idx} doit être une liste.")
+            raise JsonParsingError(
+                f"Le champ 'conditions_erreur' de l'étape {idx} doit être une liste."
+            )

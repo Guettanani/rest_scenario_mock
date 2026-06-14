@@ -66,7 +66,9 @@ def save_session(session: ScenarioSession, scenarios_dir: str) -> str:
     return str(path)
 
 
-def load_session(path_or_id: str, scenarios_dir: str = "./scenarios") -> ScenarioSession:
+def load_session(
+    path_or_id: str, scenarios_dir: str = "./scenarios"
+) -> ScenarioSession:
     """Charge une session depuis un chemin ou un scenario_id."""
     path = Path(path_or_id)
     if not path.exists():

@@ -18,20 +18,29 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStoreRetriever
 
-from .config import (DEFAULT_EMBEDDING_DEVICE, DEFAULT_EMBEDDING_MODEL,
-                     DEFAULT_FAISS_INDEX_DIR,
-                     DEFAULT_FALLBACK_EMBEDDING_MODELS,
-                     DEFAULT_HUGGINGFACE_EMBEDDING_API_URL,
-                     DEFAULT_OPENROUTER_EMBEDDING_API_URL,
-                     DEFAULT_OPENROUTER_EMBEDDING_MODEL,
-                     DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS,
-                     DEFAULT_RETRIEVER_FETCH_K, DEFAULT_RETRIEVER_K,
-                     DEFAULT_RETRIEVER_LAMBDA)
+from .config import (
+    DEFAULT_EMBEDDING_DEVICE,
+    DEFAULT_EMBEDDING_MODEL,
+    DEFAULT_FAISS_INDEX_DIR,
+    DEFAULT_FALLBACK_EMBEDDING_MODELS,
+    DEFAULT_HUGGINGFACE_EMBEDDING_API_URL,
+    DEFAULT_OPENROUTER_EMBEDDING_API_URL,
+    DEFAULT_OPENROUTER_EMBEDDING_MODEL,
+    DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS,
+    DEFAULT_RETRIEVER_FETCH_K,
+    DEFAULT_RETRIEVER_K,
+    DEFAULT_RETRIEVER_LAMBDA,
+)
 
 
 def resolve_huggingface_inference_endpoint(api_url: str | None = None) -> str:
     """Résout et normalise l'endpoint d'inférence Hugging Face."""
-    raw_url = api_url or os.environ.get("HUGGINGFACE_API_URL") or os.environ.get("HF_INFERENCE_ENDPOINT") or DEFAULT_HUGGINGFACE_EMBEDDING_API_URL
+    raw_url = (
+        api_url
+        or os.environ.get("HUGGINGFACE_API_URL")
+        or os.environ.get("HF_INFERENCE_ENDPOINT")
+        or DEFAULT_HUGGINGFACE_EMBEDDING_API_URL
+    )
     if not raw_url:
         return ""
 
@@ -59,11 +68,13 @@ logger = logging.getLogger(__name__)
 
 class EmbeddingError(Exception):
     """Erreur lors de la création des embeddings."""
+
     pass
 
 
 class EmbeddingFallbackExhaustedError(EmbeddingError):
     """Erreur quand tous les modèles d'embeddings de fallback ont échoué."""
+
     pass
 
 
@@ -97,14 +108,24 @@ class OpenRouterEmbeddings(Embeddings):
             #   - api.openrouter.ai/v1/...   (alternate, some networks resolve this)
             # If one fails to resolve, try the other.
             exc_text = str(exc)
-            if "Failed to resolve" in exc_text or "Name or service not known" in exc_text:
+            if (
+                "Failed to resolve" in exc_text
+                or "Name or service not known" in exc_text
+            ):
                 fallback_url = None
-                if "openrouter.ai" in self.api_url and "api.openrouter.ai" not in self.api_url:
+                if (
+                    "openrouter.ai" in self.api_url
+                    and "api.openrouter.ai" not in self.api_url
+                ):
                     # openrouter.ai/api/v1/ -> api.openrouter.ai/v1/
-                    fallback_url = self.api_url.replace("openrouter.ai/api/v1/", "api.openrouter.ai/v1/")
+                    fallback_url = self.api_url.replace(
+                        "openrouter.ai/api/v1/", "api.openrouter.ai/v1/"
+                    )
                 elif "api.openrouter.ai" in self.api_url:
                     # api.openrouter.ai/v1/ -> openrouter.ai/api/v1/
-                    fallback_url = self.api_url.replace("api.openrouter.ai/v1/", "openrouter.ai/api/v1/")
+                    fallback_url = self.api_url.replace(
+                        "api.openrouter.ai/v1/", "openrouter.ai/api/v1/"
+                    )
 
                 if fallback_url:
                     try:
@@ -116,14 +137,20 @@ class OpenRouterEmbeddings(Embeddings):
                             timeout=60,
                         )
                     except Exception as exc2:
-                        raise EmbeddingError(f"Requête OpenRouter impossible (fallback): {exc2}") from exc2
+                        raise EmbeddingError(
+                            f"Requête OpenRouter impossible (fallback): {exc2}"
+                        ) from exc2
                 else:
-                    raise EmbeddingError(f"Requête OpenRouter impossible : {exc}") from exc
+                    raise EmbeddingError(
+                        f"Requête OpenRouter impossible : {exc}"
+                    ) from exc
             else:
                 raise EmbeddingError(f"Requête OpenRouter impossible : {exc}") from exc
 
         # If the server responds with a redirect, follow it explicitly
-        if response.status_code in (301, 302, 303, 307, 308) and response.headers.get("Location"):
+        if response.status_code in (301, 302, 303, 307, 308) and response.headers.get(
+            "Location"
+        ):
             redirected_url = response.headers.get("Location")
             try:
                 response = session.post(
@@ -133,7 +160,9 @@ class OpenRouterEmbeddings(Embeddings):
                     timeout=60,
                 )
             except Exception as exc:
-                raise EmbeddingError(f"Requête OpenRouter redirigée impossible : {exc}") from exc
+                raise EmbeddingError(
+                    f"Requête OpenRouter redirigée impossible : {exc}"
+                ) from exc
 
         if response.status_code != 200:
             raise EmbeddingError(
@@ -192,14 +221,22 @@ def create_embeddings(
         EmbeddingError: Si aucune clé API n'est fournie ou si la requête échoue.
         EmbeddingFallbackExhaustedError: Si tous les modèles échouent.
     """
-    resolved_provider = (provider or os.environ.get("EMBEDDING_PROVIDER") or "huggingface").strip().lower()
+    resolved_provider = (
+        (provider or os.environ.get("EMBEDDING_PROVIDER") or "huggingface")
+        .strip()
+        .lower()
+    )
     logger.info("=" * 60)
     logger.info("CONFIGURATION EMBEDDINGS DÉTAILLÉE")
     logger.info("=" * 60)
     logger.info("  Provider       : %s", resolved_provider)
     logger.info("  Modèle demandé : %s", model_name)
     if resolved_provider == "openrouter":
-        resolved_api_key = api_key or os.environ.get("OPENROUTER_EMBEDDING_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
+        resolved_api_key = (
+            api_key
+            or os.environ.get("OPENROUTER_EMBEDDING_API_KEY")
+            or os.environ.get("OPENROUTER_API_KEY")
+        )
         if not resolved_api_key:
             raise EmbeddingError(
                 "Une clé API OpenRouter est requise pour les embeddings OpenRouter. "
@@ -218,15 +255,24 @@ def create_embeddings(
             or model_name
             or DEFAULT_OPENROUTER_EMBEDDING_MODEL
         )
-        masked_key = resolved_api_key[:8] + '***' + resolved_api_key[-4:] if len(resolved_api_key) > 12 else '***REDACTED***'
+        masked_key = (
+            resolved_api_key[:8] + "***" + resolved_api_key[-4:]
+            if len(resolved_api_key) > 12
+            else "***REDACTED***"
+        )
         logger.info("  API URL        : %s", resolved_api_url)
         logger.info("  Modèle résolu  : %s", resolved_model)
         logger.info("  Clé API (masq.): %s", masked_key)
-        logger.info("  Fallback models: %s", fallback_models or DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS)
+        logger.info(
+            "  Fallback models: %s",
+            fallback_models or DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS,
+        )
         logger.info("=" * 60)
 
         models_to_try = [resolved_model] + [
-            m for m in (fallback_models or DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS) if m != resolved_model
+            m
+            for m in (fallback_models or DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS)
+            if m != resolved_model
         ]
         errors: list[tuple[str, str]] = []
 
@@ -255,19 +301,32 @@ def create_embeddings(
         )
 
     # Par défaut, HuggingFace embeddings
-    resolved_api_key = api_key or os.environ.get("HUGGINGFACE_API_KEY") or os.environ.get("HF_TOKEN")
+    resolved_api_key = (
+        api_key or os.environ.get("HUGGINGFACE_API_KEY") or os.environ.get("HF_TOKEN")
+    )
     if not resolved_api_key:
         raise EmbeddingError(
             "Une clé API HuggingFace est requise pour les embeddings. "
             "Définissez HUGGINGFACE_API_KEY ou HF_TOKEN."
         )
 
-    resolved_api_url = api_url or os.environ.get("HUGGINGFACE_API_URL") or os.environ.get("HF_INFERENCE_ENDPOINT") or DEFAULT_HUGGINGFACE_EMBEDDING_API_URL
-    masked_key = resolved_api_key[:8] + '***' + resolved_api_key[-4:] if len(resolved_api_key) > 12 else '***REDACTED***'
+    resolved_api_url = (
+        api_url
+        or os.environ.get("HUGGINGFACE_API_URL")
+        or os.environ.get("HF_INFERENCE_ENDPOINT")
+        or DEFAULT_HUGGINGFACE_EMBEDDING_API_URL
+    )
+    masked_key = (
+        resolved_api_key[:8] + "***" + resolved_api_key[-4:]
+        if len(resolved_api_key) > 12
+        else "***REDACTED***"
+    )
     logger.info("  API URL        : %s", resolved_api_url)
     logger.info("  Modèle résolu  : %s", model_name)
     logger.info("  Clé API (masq.): %s", masked_key)
-    logger.info("  Fallback models: %s", fallback_models or DEFAULT_FALLBACK_EMBEDDING_MODELS)
+    logger.info(
+        "  Fallback models: %s", fallback_models or DEFAULT_FALLBACK_EMBEDDING_MODELS
+    )
     logger.info("=" * 60)
     hf_api_base = resolve_huggingface_inference_endpoint(resolved_api_url)
     if hf_api_base:
@@ -275,7 +334,9 @@ def create_embeddings(
         logger.info("Endpoint Hugging Face configuré sur : %s", hf_api_base)
 
     models_to_try = [model_name] + [
-        m for m in (fallback_models or DEFAULT_FALLBACK_EMBEDDING_MODELS) if m != model_name
+        m
+        for m in (fallback_models or DEFAULT_FALLBACK_EMBEDDING_MODELS)
+        if m != model_name
     ]
     errors: list[tuple[str, str]] = []
 
@@ -340,7 +401,9 @@ def build_vectorstore(
     return vectorstore
 
 
-def save_vectorstore(vectorstore: FAISS, folder_path: str = DEFAULT_FAISS_INDEX_DIR) -> None:
+def save_vectorstore(
+    vectorstore: FAISS, folder_path: str = DEFAULT_FAISS_INDEX_DIR
+) -> None:
     """Sauvegarde le vectorstore FAISS localement sur le disque.
 
     Args:
@@ -370,11 +433,11 @@ def load_vectorstore(
     ):
         logger.info("Aucun index FAISS local trouvé dans : %s", folder_path)
         return None
-    
+
     if embeddings is None:
         logger.warning("Aucun embedding fourni pour charger le vectorstore.")
         return None
-    
+
     try:
         vectorstore = FAISS.load_local(
             folder_path,

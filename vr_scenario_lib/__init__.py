@@ -11,7 +11,7 @@ Example:
     >>> from vr_scenario_lib import run_pipeline, build_llm_config
     >>> config = build_llm_config(token="hf_...")
     >>> result = run_pipeline("consignation gaz", retriever, config)
-    
+
     >>> from vr_scenario_lib import ConversationalAgent
     >>> agent = ConversationalAgent()
     >>> agent.run_voice_session()
@@ -20,50 +20,97 @@ Example:
 from __future__ import annotations
 
 # Config
-from .config import (CORRESPONDANCE_OBJETS, DEFAULT_DOCS_DIR,  # Defaults
-                     DEFAULT_FAISS_INDEX_DIR,
-                     DEFAULT_FALLBACK_EMBEDDING_MODELS,
-                     DEFAULT_FALLBACK_MODELS, DEFAULT_LOG_LEVEL,
-                     DEFAULT_OUTPUT_PATH, DEFAULT_SCENARIOS_DIR,
-                     DEFAULT_VECTORSTORE_CACHE_ENABLED, JSON_SCHEMA_V2,
-                     SYSTEM_JSON_CONVERTER, SYSTEM_SCENARIO, LLMConfig,
-                     build_llm_config)
+from .config import DEFAULT_DOCS_DIR  # Defaults
+from .config import (
+    CORRESPONDANCE_OBJETS,
+    DEFAULT_FAISS_INDEX_DIR,
+    DEFAULT_FALLBACK_EMBEDDING_MODELS,
+    DEFAULT_FALLBACK_MODELS,
+    DEFAULT_LOG_LEVEL,
+    DEFAULT_OUTPUT_PATH,
+    DEFAULT_SCENARIOS_DIR,
+    DEFAULT_VECTORSTORE_CACHE_ENABLED,
+    JSON_SCHEMA_V2,
+    SYSTEM_JSON_CONVERTER,
+    SYSTEM_SCENARIO,
+    LLMConfig,
+    build_llm_config,
+)
+
 # Documents
-from .documents import (DocumentLoadError, DocumentLoadWarning, load_document,
-                        scan_directory, split_documents)
+from .documents import (
+    DocumentLoadError,
+    DocumentLoadWarning,
+    load_document,
+    scan_directory,
+    split_documents,
+)
+
 # JSON Converter
-from .json_converter import (JsonParsingError, clean_llm_json,
-                             convert_scenario_to_json, parse_scenario_json)
+from .json_converter import (
+    JsonParsingError,
+    clean_llm_json,
+    convert_scenario_to_json,
+    parse_scenario_json,
+)
+
 # LLM
-from .llm import (LLMError, LLMFallbackExhaustedError, call_llm,
-                  call_llm_messages)
+from .llm import LLMError, LLMFallbackExhaustedError, call_llm, call_llm_messages
+
 # Pipeline
 from .pipeline import PipelineError, run_pipeline, save_json
+
 # Prompts
-from .prompts import (build_announcement_prompt, build_json_conversion_prompt,
-                      build_scenario_prompt)
+from .prompts import (
+    build_announcement_prompt,
+    build_json_conversion_prompt,
+    build_scenario_prompt,
+)
+
 # Scenario
-from .scenario import (discuss_scenario, format_context, generate_narrative,
-                       generate_scenario, retrieve_context)
-from .scenario_store import (ScenarioSession, create_session, list_sessions,
-                             load_session, save_session)
+from .scenario import (
+    discuss_scenario,
+    format_context,
+    generate_narrative,
+    generate_scenario,
+    retrieve_context,
+)
+from .scenario_store import (
+    ScenarioSession,
+    create_session,
+    list_sessions,
+    load_session,
+    save_session,
+)
+
 # Vectorstore
-from .vectorstore import (EmbeddingError, EmbeddingFallbackExhaustedError,
-                          build_vectorstore, create_embeddings,
-                          create_retriever, load_vectorstore, save_vectorstore)
+from .vectorstore import (
+    EmbeddingError,
+    EmbeddingFallbackExhaustedError,
+    build_vectorstore,
+    create_embeddings,
+    create_retriever,
+    load_vectorstore,
+    save_vectorstore,
+)
 
 # Voice Agent (optional - requires additional dependencies)
 try:
-    from .voice_agent import (SpeechRecognitionError, TextToSpeechError,
-                              VoiceAgent, VoiceAgentError)
+    from .voice_agent import (
+        SpeechRecognitionError,
+        TextToSpeechError,
+        VoiceAgent,
+        VoiceAgentError,
+    )
+
     _VOICE_AVAILABLE = True
 except ImportError:
     _VOICE_AVAILABLE = False
 
 # Conversational Agent (optional - requires additional dependencies)
 try:
-    from .conversational_agent import (ConversationalAgent,
-                                       ConversationalAgentError)
+    from .conversational_agent import ConversationalAgent, ConversationalAgentError
+
     _CONVERSATIONAL_AVAILABLE = True
 except ImportError:
     _CONVERSATIONAL_AVAILABLE = False

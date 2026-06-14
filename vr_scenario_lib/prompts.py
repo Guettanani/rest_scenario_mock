@@ -74,6 +74,7 @@ def build_announcement_prompt(scenario: dict) -> str:
         Prompt utilisateur pour le LLM qui générera le texte narratif.
     """
     import json as _json
+
     scenario_str = _json.dumps(scenario, ensure_ascii=False, indent=2)
 
     return f"""Reformule ce scénario de formation gazière en un texte narratif fluide,

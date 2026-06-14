@@ -31,7 +31,12 @@ def retrieve_context(retriever: VectorStoreRetriever, topic: str) -> list[Docume
     docs = retriever.invoke(topic)
     logger.info("Retrieval : %d documents trouvés pour '%s'", len(docs), topic[:80])
     for i, doc in enumerate(docs):
-        logger.info("  Doc #%d — source: %s, contenu: %d car.", i + 1, doc.metadata.get('source', 'inconnu'), len(doc.page_content))
+        logger.info(
+            "  Doc #%d — source: %s, contenu: %d car.",
+            i + 1,
+            doc.metadata.get("source", "inconnu"),
+            len(doc.page_content),
+        )
     return docs
 
 
@@ -79,7 +84,9 @@ def generate_scenario(
     user_prompt = build_scenario_prompt(topic, context)
     if custom_prompt:
         logger.info("  Custom prompt injecté : %s", custom_prompt[:200])
-        user_prompt += "\n\n---\n\nCONSIGNES SUPPLÉMENTAIRES DE L'UTILISATEUR :\n" + custom_prompt
+        user_prompt += (
+            "\n\n---\n\nCONSIGNES SUPPLÉMENTAIRES DE L'UTILISATEUR :\n" + custom_prompt
+        )
     logger.info("  User prompt final : %d caractères", len(user_prompt))
 
     logger.info("GÉNÉRATION DE SCÉNARIO — ÉTAPE 3/3 : Appel LLM")
@@ -178,6 +185,9 @@ def discuss_scenario(
     session.history.append({"role": "user", "content": user_message})
     session.history.append({"role": "assistant", "content": reply})
 
-    logger.info("Discussion scénario — échange #%d, réponse : %d car.",
-                len(session.history) // 2, len(reply))
+    logger.info(
+        "Discussion scénario — échange #%d, réponse : %d car.",
+        len(session.history) // 2,
+        len(reply),
+    )
     return reply

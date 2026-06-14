@@ -14,8 +14,7 @@ from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from .config import (DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE,
-                     SUPPORTED_EXTENSIONS)
+from .config import DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, SUPPORTED_EXTENSIONS
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +26,13 @@ logger = logging.getLogger(__name__)
 
 class DocumentLoadError(Exception):
     """Erreur lors du chargement d'un document."""
+
     pass
 
 
 class DocumentLoadWarning(UserWarning):
     """Avertissement lors du chargement d'un document (non bloquant)."""
+
     pass
 
 
@@ -116,7 +117,7 @@ def scan_directory(directory: str) -> list[Document]:
 
     all_docs: list[Document] = []
     errors: list[tuple[str, str]] = []
-    
+
     for root, _dirs, files in os.walk(directory):
         for filename in files:
             if not _is_supported_file(filename):
@@ -129,22 +130,28 @@ def scan_directory(directory: str) -> list[Document]:
                 errors.append((filename, error_msg))
                 logger.warning("Ignoré %s : %s", filename, error_msg)
 
-    logger.info("Scan terminé : %d documents chargés depuis %s", len(all_docs), directory)
-    
+    logger.info(
+        "Scan terminé : %d documents chargés depuis %s", len(all_docs), directory
+    )
+
     # Afficher un résumé des erreurs s'il y en a
     if errors:
-        logger.warning("%d fichier(s) ignoré(s) sur %d au total :", len(errors), len(errors) + len(all_docs))
+        logger.warning(
+            "%d fichier(s) ignoré(s) sur %d au total :",
+            len(errors),
+            len(errors) + len(all_docs),
+        )
         for filename, error in errors[:5]:  # Limiter à 5 erreurs affichées
             logger.warning("  - %s : %s", filename, error[:80])
         if len(errors) > 5:
             logger.warning("  ... et %d autres", len(errors) - 5)
-    
+
     if not all_docs:
         raise ValueError(
             f"Aucun document valide trouvé dans '{directory}'. "
             f"Vérifiez que le dossier contient des fichiers PDF ou DOCX."
         )
-    
+
     return all_docs
 
 

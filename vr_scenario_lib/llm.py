@@ -21,11 +21,13 @@ logger = logging.getLogger(__name__)
 
 class LLMError(Exception):
     """Erreur lors de l'appel au LLM."""
+
     pass
 
 
 class LLMFallbackExhaustedError(LLMError):
     """Erreur quand tous les modèles de fallback ont échoué."""
+
     pass
 
 
@@ -159,7 +161,11 @@ def _call_llm_single_model(
 
     api_url = config["api_url"]
     token = config.get("token")
-    masked_token = token[:8] + '***' + token[-4:] if token and len(token) > 12 else '***REDACTED***'
+    masked_token = (
+        token[:8] + "***" + token[-4:]
+        if token and len(token) > 12
+        else "***REDACTED***"
+    )
     logger.info("=" * 60)
     logger.info("APPEL LLM DÉTAILLÉ")
     logger.info("=" * 60)
@@ -173,7 +179,10 @@ def _call_llm_single_model(
     if messages is not None:
         logger.info("  Messages chat : %d entrées", len(messages))
     # Debug: log headers (with token masked)
-    debug_headers = {k: (v if k != "Authorization" else "Bearer " + masked_token) for k, v in headers.items()}
+    debug_headers = {
+        k: (v if k != "Authorization" else "Bearer " + masked_token)
+        for k, v in headers.items()
+    }
     logger.debug("  Headers       : %s", debug_headers)
     logger.info("=" * 60)
 
@@ -191,14 +200,23 @@ def _call_llm_single_model(
     fallback_api_url = None
     if "api.openrouter.ai" in api_url:
         # api.openrouter.ai/v1/ -> openrouter.ai/api/v1/
-        fallback_api_url = api_url.replace("api.openrouter.ai/v1/", "openrouter.ai/api/v1/")
+        fallback_api_url = api_url.replace(
+            "api.openrouter.ai/v1/", "openrouter.ai/api/v1/"
+        )
     elif "openrouter.ai" in api_url and "api.openrouter.ai" not in api_url:
         # openrouter.ai/api/v1/ -> api.openrouter.ai/v1/
-        fallback_api_url = api_url.replace("openrouter.ai/api/v1/", "api.openrouter.ai/v1/")
+        fallback_api_url = api_url.replace(
+            "openrouter.ai/api/v1/", "api.openrouter.ai/v1/"
+        )
 
     for attempt in range(1, max_retries + 1):
         try:
-            logger.info("Appel LLM (modèle: %s, tentative %d/%d)...", model.split("/")[-1], attempt, max_retries)
+            logger.info(
+                "Appel LLM (modèle: %s, tentative %d/%d)...",
+                model.split("/")[-1],
+                attempt,
+                max_retries,
+            )
             attempt_start = time.monotonic()
             logger.info(
                 "LLM request start model=%s api_url=%s timeout=%ss",
@@ -215,8 +233,16 @@ def _call_llm_single_model(
                 )
             except requests.ConnectionError as conn_exc:
                 # If DNS resolution fails, try the fallback URL
-                if fallback_api_url and ("Failed to resolve" in str(conn_exc) or "Name or service not known" in str(conn_exc) or "NameResolutionError" in str(conn_exc)):
-                    logger.info("DNS échoué pour %s, tentative avec %s", api_url, fallback_api_url)
+                if fallback_api_url and (
+                    "Failed to resolve" in str(conn_exc)
+                    or "Name or service not known" in str(conn_exc)
+                    or "NameResolutionError" in str(conn_exc)
+                ):
+                    logger.info(
+                        "DNS échoué pour %s, tentative avec %s",
+                        api_url,
+                        fallback_api_url,
+                    )
                     response = requests.post(
                         fallback_api_url,
                         headers=headers,
@@ -235,7 +261,11 @@ def _call_llm_single_model(
             )
             if response.ok:
                 content = _extract_content(response.json())
-                logger.info("LLM réponse reçue de %s (%d caractères)", model.split("/")[-1], len(content))
+                logger.info(
+                    "LLM réponse reçue de %s (%d caractères)",
+                    model.split("/")[-1],
+                    len(content),
+                )
                 return content
 
             if response.status_code == 402:
@@ -245,34 +275,55 @@ def _call_llm_single_model(
                     "ses crédits d'inférence. Rechargez votre compte Hugging Face ou utilisez un token "
                     "avec des crédits valides."
                 )
-                logger.error("Erreur 402 Payment Required pour %s : %s", model.split("/")[-1], error_msg)
+                logger.error(
+                    "Erreur 402 Payment Required pour %s : %s",
+                    model.split("/")[-1],
+                    error_msg,
+                )
                 raise LLMError(error_msg)
 
             if response.status_code in (429, 500, 502, 503, 504):
-                error_msg = f"Erreur HTTP {response.status_code} : {response.text[:300]}"
+                error_msg = (
+                    f"Erreur HTTP {response.status_code} : {response.text[:300]}"
+                )
                 error_msg = sanitize_token(error_msg, token)
                 logger.warning(
                     "Tentative %d/%d échouée pour %s (code %d). Pause avant nouvel essai.",
-                    attempt, max_retries, model.split("/")[-1], response.status_code
+                    attempt,
+                    max_retries,
+                    model.split("/")[-1],
+                    response.status_code,
                 )
                 last_exception = LLMError(error_msg)
             else:
-                error_msg = f"Erreur HTTP {response.status_code} : {response.text[:300]}"
+                error_msg = (
+                    f"Erreur HTTP {response.status_code} : {response.text[:300]}"
+                )
                 error_msg = sanitize_token(error_msg, token)
-                logger.error("Erreur HTTP non récupérable %d pour %s : %s", response.status_code, model.split("/")[-1], error_msg)
+                logger.error(
+                    "Erreur HTTP non récupérable %d pour %s : %s",
+                    response.status_code,
+                    model.split("/")[-1],
+                    error_msg,
+                )
                 raise LLMError(error_msg)
 
         except requests.RequestException as exc:
             exc_msg = sanitize_token(str(exc), token)
             logger.warning(
                 "Tentative %d/%d échouée pour %s (erreur réseau) : %s",
-                attempt, max_retries, model.split("/")[-1], exc_msg
+                attempt,
+                max_retries,
+                model.split("/")[-1],
+                exc_msg,
             )
             last_exception = LLMError(f"Erreur réseau lors de l'appel LLM : {exc_msg}")
 
         if attempt < max_retries:
             sleep_time = initial_delay * (backoff_factor ** (attempt - 1))
-            logger.info("Attente de %.1f secondes avant la prochaine tentative...", sleep_time)
+            logger.info(
+                "Attente de %.1f secondes avant la prochaine tentative...", sleep_time
+            )
             time.sleep(sleep_time)
 
     if last_exception:
@@ -305,17 +356,17 @@ def call_llm(
     # Construire la liste complète : modèle principal + fallbacks
     primary_model = config["model"]
     fallback_models = config.get("fallback_models", [])
-    
+
     # Éviter les doublons
     all_models = [primary_model] + [m for m in fallback_models if m != primary_model]
-    
+
     logger.info("Appel LLM avec fallback - Modèles disponibles : %d", len(all_models))
     for idx, m in enumerate(all_models):
         label = "PRINCIPAL" if idx == 0 else f"fallback #{idx}"
         logger.info("  [%s] %s", label, m)
-    
+
     errors: list[tuple[str, str]] = []
-    
+
     for model in all_models:
         try:
             return _call_llm_single_model(
@@ -328,9 +379,12 @@ def call_llm(
         except LLMError as exc:
             error_msg = str(exc)
             errors.append((model, error_msg))
-            logger.warning("Modèle %s échoué, tentative avec le modèle suivant...", model.split("/")[-1])
+            logger.warning(
+                "Modèle %s échoué, tentative avec le modèle suivant...",
+                model.split("/")[-1],
+            )
             continue
-    
+
     # Tous les modèles ont échoué
     error_summary = "\n".join(f"  - {m.split('/')[-1]}: {e[:100]}" for m, e in errors)
     raise LLMFallbackExhaustedError(
@@ -372,7 +426,10 @@ def call_llm_messages(
             )
         except LLMError as exc:
             errors.append((model, str(exc)))
-            logger.warning("Modèle %s échoué, tentative avec le modèle suivant...", model.split("/")[-1])
+            logger.warning(
+                "Modèle %s échoué, tentative avec le modèle suivant...",
+                model.split("/")[-1],
+            )
             continue
 
     error_summary = "\n".join(f"  - {m.split('/')[-1]}: {e[:100]}" for m, e in errors)

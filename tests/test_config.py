@@ -1,7 +1,7 @@
 # import pytest
 
 # # from vr_scenario_lib.config import Config LLMConfig
-# from vr_scenario_lib.config import LLMConfig 
+# from vr_scenario_lib.config import LLMConfig
 
 # def test_config_loading():
 #     """Test que la configuration peut être chargée correctement."""
@@ -13,8 +13,10 @@
 #     assert hasattr(config, 'scenarios_path')
 
 import os
+
 import pytest
-from vr_scenario_lib.config import build_llm_config, DEFAULT_FALLBACK_MODELS
+
+from vr_scenario_lib.config import DEFAULT_FALLBACK_MODELS, build_llm_config
 
 
 def test_build_llm_config_with_explicit_token():
