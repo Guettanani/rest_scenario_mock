@@ -201,6 +201,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
+        file: ./Dockerfile.rest
         # En PR, on ne construit que pour linux/amd64 pour tester le build rapidement et éviter le conflit multi-plateforme
         platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
         push: ${{ github.event_name != 'pull_request' }}

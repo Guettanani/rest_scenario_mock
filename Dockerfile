@@ -55,7 +55,7 @@ FROM base as application
 # Copier les dépendances depuis l'étape précédente
 COPY --from=dependencies /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=dependencies /usr/local/bin /usr/local/bin
-COPY --from=dependencies /app/scenario_pb2.py /app/scenario_pb2_grpc.py ./
+# COPY --from=dependencies /app/scenario_pb2.py /app/scenario_pb2_grpc.py ./
 
 # Copier le code source
 COPY . .
