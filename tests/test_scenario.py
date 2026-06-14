@@ -108,7 +108,9 @@ def test_discuss_scenario_without_retriever(mock_call_llm_messages):
     
     session = ScenarioSession(
         scenario_id="test",
+        topic="Démarrage bypass",
         scenario_text="Texte du scénario d'origine",
+        scenario_json={},
         history=[]
     )
     llm_config = build_llm_config(token="fake_token")
