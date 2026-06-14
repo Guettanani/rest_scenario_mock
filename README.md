@@ -30,7 +30,7 @@ Pour démarrer le serveur REST, exécutez la commande suivante :
 python app.py
 ```
 
-Le serveur sera accessible à l'adresse [http://localhost:8001](http://localhost:8001)
+Le serveur sera accessible à l'adresse [http://localhost:3001](http://localhost:3001)
 
 ### Utilisation de base
 
@@ -48,18 +48,18 @@ Voici quelques exemples de requêtes que vous pouvez envoyer à l'API :
 
 ```bash
 # Récupérer tous les scénarios
-curl http://localhost:8001/scenarios
+curl http://localhost:3001/scenarios
 
 # Récupérer un scénario spécifique
-curl http://localhost:8001/scenarios/1
+curl http://localhost:3001/scenarios/1
 
 # Créer un nouveau scénario
-curl -X POST -H "Content-Type: application/json" -d '{"name":"Test Scenario", "description":"A test scenario"}' http://localhost:8001/scenarios
+curl -X POST -H "Content-Type: application/json" -d '{"name":"Test Scenario", "description":"A test scenario"}' http://localhost:3001/scenarios
 ```
 
 ## Documentation
 
-Pour plus de détails sur les points d'accès de l'API et leurs paramètres, veuillez consulter la documentation Swagger disponible à l'adresse [http://localhost:8001/docs](http://localhost:8001/docs) une fois le serveur démarré.
+Pour plus de détails sur les points d'accès de l'API et leurs paramètres, veuillez consulter la documentation Swagger disponible à l'adresse [http://localhost:3001/docs](http://localhost:3001/docs) une fois le serveur démarré.
 
 ## Contribution
 

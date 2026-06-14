@@ -16,7 +16,7 @@ services:
     container_name: vr-scenario-lib-rest
 
     ports:
-      - "8001:8001"
+      - "3001:3001"
 
     environment:
       - HF_TOKEN=${HF_TOKEN}
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:8001/health"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3

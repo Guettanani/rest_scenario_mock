@@ -56,7 +56,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration par défaut
-DEFAULT_PORT = 8001
+DEFAULT_PORT = 3001
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_DOCS_DIR = "./documents"
 DEFAULT_FAISS_DIR = "faiss_index"

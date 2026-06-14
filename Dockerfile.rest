@@ -54,10 +54,10 @@ RUN mkdir -p /app/documents /app/output /app/faiss_index /app/scenarios && \
 
 USER appuser
 
-EXPOSE 8001
+EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD curl -f http://localhost:8001/health || exit 1
+    CMD curl -f http://localhost:3001/health || exit 1
 
 ENTRYPOINT ["python", "-m", "vr_scenario_lib.rest_server"]
-CMD ["--host", "0.0.0.0", "--port", "8001", "--docs-dir", "/app/documents", "--faiss-dir", "/app/faiss_index", "--scenarios-dir", "/app/scenarios"]
+CMD ["--host", "0.0.0.0", "--port", "3001", "--docs-dir", "/app/documents", "--faiss-dir", "/app/faiss_index", "--scenarios-dir", "/app/scenarios"]

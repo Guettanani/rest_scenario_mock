@@ -44,7 +44,7 @@ docker-compose -f docker-compose.rest.yml build
 docker-compose -f docker-compose.rest.yml up -d rest-server
 ```
 
-Le serveur sera accessible à l'adresse `http://localhost:8001`.
+Le serveur sera accessible à l'adresse `http://localhost:3001`.
 
 ### 2. Vérifier l'état du serveur
 
@@ -84,25 +84,25 @@ Une fois le serveur lancé, vous pouvez utiliser les endpoints REST :
 ### Générer un scénario
 
 ```bash
-curl -X POST http://localhost:8001/api/v1/scenario/generate   -H "Content-Type: application/json"   -d '{"topic": "sécurité incendie", "custom_prompt": "Ajouter des consignes spécifiques pour les bureaux"}'
+curl -X POST http://localhost:3001/api/v1/scenario/generate   -H "Content-Type: application/json"   -d '{"topic": "sécurité incendie", "custom_prompt": "Ajouter des consignes spécifiques pour les bureaux"}'
 ```
 
 ### Récupérer un scénario existant
 
 ```bash
-curl http://localhost:8001/api/v1/scenario/<session_id>
+curl http://localhost:3001/api/v1/scenario/<session_id>
 ```
 
 ### Poser une question à un scénario
 
 ```bash
-curl -X POST http://localhost:8001/api/v1/scenario/<session_id>/question   -H "Content-Type: application/json"   -d '{"question": "Quelles sont les procédures d'évacuation ?"}'
+curl -X POST http://localhost:3001/api/v1/scenario/<session_id>/question   -H "Content-Type: application/json"   -d '{"question": "Quelles sont les procédures d'évacuation ?"}'
 ```
 
 ### Récupérer le JSON initial
 
 ```bash
-curl http://localhost:8001/api/initial-json
+curl http://localhost:3001/api/initial-json
 ```
 
 ## Dépannage
@@ -111,11 +111,11 @@ curl http://localhost:8001/api/initial-json
 
 1. **Le serveur ne démarre pas** :
    - Vérifiez les logs avec `docker-compose -f docker-compose.rest.yml logs rest-server`
-   - Assurez-vous que les ports 8001 ne sont pas utilisés par une autre application
+   - Assurez-vous que les ports 3001 ne sont pas utilisés par une autre application
 
 2. **Le client ne se connecte pas** :
    - Vérifiez que le serveur est en cours d'exécution
-   - Vérifiez que l'URL du serveur est correcte (http://localhost:8001)
+   - Vérifiez que l'URL du serveur est correcte (http://localhost:3001)
 
 3. **Erreurs de dépendances** :
    - Reconstruisez l'image avec `docker-compose -f docker-compose.rest.yml build --no-cache`
