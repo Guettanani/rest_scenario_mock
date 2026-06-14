@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+
 from vr_scenario_lib.rest_server import app
 
 client = TestClient(app)

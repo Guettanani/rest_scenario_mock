@@ -12,7 +12,7 @@ from langchain_core.vectorstores import VectorStoreRetriever
 
 from .config import SYSTEM_SCENARIO, SYSTEM_SCENARIO_DISCUSSION, LLMConfig
 from .llm import call_llm, call_llm_messages
-from .prompts import build_scenario_prompt, build_announcement_prompt
+from .prompts import build_announcement_prompt, build_scenario_prompt
 from .scenario_store import ScenarioSession
 
 logger = logging.getLogger(__name__)

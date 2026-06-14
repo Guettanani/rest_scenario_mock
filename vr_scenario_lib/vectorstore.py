@@ -18,19 +18,15 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStoreRetriever
 
-from .config import (
-    DEFAULT_EMBEDDING_DEVICE,
-    DEFAULT_EMBEDDING_MODEL,
-    DEFAULT_FALLBACK_EMBEDDING_MODELS,
-    DEFAULT_HUGGINGFACE_EMBEDDING_API_URL,
-    DEFAULT_OPENROUTER_EMBEDDING_API_URL,
-    DEFAULT_OPENROUTER_EMBEDDING_MODEL,
-    DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS,
-    DEFAULT_RETRIEVER_FETCH_K,
-    DEFAULT_RETRIEVER_K,
-    DEFAULT_RETRIEVER_LAMBDA,
-    DEFAULT_FAISS_INDEX_DIR,
-)
+from .config import (DEFAULT_EMBEDDING_DEVICE, DEFAULT_EMBEDDING_MODEL,
+                     DEFAULT_FAISS_INDEX_DIR,
+                     DEFAULT_FALLBACK_EMBEDDING_MODELS,
+                     DEFAULT_HUGGINGFACE_EMBEDDING_API_URL,
+                     DEFAULT_OPENROUTER_EMBEDDING_API_URL,
+                     DEFAULT_OPENROUTER_EMBEDDING_MODEL,
+                     DEFAULT_OPENROUTER_FALLBACK_EMBEDDING_MODELS,
+                     DEFAULT_RETRIEVER_FETCH_K, DEFAULT_RETRIEVER_K,
+                     DEFAULT_RETRIEVER_LAMBDA)
 
 
 def resolve_huggingface_inference_endpoint(api_url: str | None = None) -> str:

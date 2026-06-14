@@ -1,7 +1,10 @@
-import pytest
 import json
 from pathlib import Path
+
+import pytest
+
 from vr_scenario_lib.scenario import Scenario
+
 
 def test_scenario_loading():
     """Test qu'un scénario peut être chargé correctement."""

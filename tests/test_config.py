@@ -1,5 +1,7 @@
 import pytest
+
 from vr_scenario_lib.config import Config
+
 
 def test_config_loading():
     """Test que la configuration peut être chargée correctement."""

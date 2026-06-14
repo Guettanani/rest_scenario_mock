@@ -29,22 +29,15 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
-from vr_scenario_lib import (
-    build_llm_config,
-    create_embeddings,
-    create_retriever,
-    load_vectorstore,
-    run_pipeline,
-    save_vectorstore,
-    scan_directory,
-    split_documents,
-)
-from vr_scenario_lib.vectorstore import build_vectorstore
+from vr_scenario_lib import (build_llm_config, create_embeddings,
+                             create_retriever, load_vectorstore, run_pipeline,
+                             save_vectorstore, scan_directory, split_documents)
 from vr_scenario_lib.scenario_store import list_sessions, load_session
+from vr_scenario_lib.vectorstore import build_vectorstore
 
 logging.basicConfig(
     level=logging.INFO,
@@ -227,6 +220,7 @@ class DocumentsResponse(BaseModel):
 # =============================================================================
 
 from contextlib import asynccontextmanager
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

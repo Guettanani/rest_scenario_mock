@@ -14,7 +14,8 @@ from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from .config import DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, SUPPORTED_EXTENSIONS
+from .config import (DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE,
+                     SUPPORTED_EXTENSIONS)
 
 logger = logging.getLogger(__name__)
 
