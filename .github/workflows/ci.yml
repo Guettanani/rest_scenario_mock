@@ -209,7 +209,8 @@ jobs:
         load: ${{ github.event_name == 'pull_request' }}
         tags: |
           ${{ steps.meta.outputs.tags }}
-          vr_scenario_lib_rest:test-local
+        
+          ${{ secrets.DOCKER_USERNAME || 'karimnani' }}/vr_scenario_lib_rest:test-local
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -219,7 +220,8 @@ jobs:
       if: github.event_name == 'pull_request'
       uses: aquasecurity/trivy-action@v0.36.0
       with:
-        image-ref: vr_scenario_lib_rest:test-local
+        # image-ref: vr_scenario_lib_rest:test-local
+        image-ref: ${{ secrets.DOCKER_USERNAME || 'karimnani' }}/vr_scenario_lib_rest:test-local
         format: sarif
         output: trivy-results.sarif
         severity: CRITICAL,HIGH
