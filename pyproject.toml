@@ -23,5 +23,5 @@ line_length = 88
 known_first_party = ["vr_scenario_lib"]
 
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]  #, "setuptools_scm[toml]>=6.2"
 build-backend = "setuptools.build_meta"
