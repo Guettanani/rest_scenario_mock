@@ -216,7 +216,7 @@ jobs:
     - name: Scan Docker image for vulnerabilities
       # Le scan local n'est exécuté que sur les PRs car l'image y est disponible localement
       if: github.event_name == 'pull_request'
-      uses: aquasecurity/trivy-action@V0.36.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: vr_scenario_lib_rest:test-local
         format: sarif
