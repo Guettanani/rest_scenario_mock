@@ -8,8 +8,6 @@ Usage:
 
 Endpoints:
     GET  /health                       - Health check
-    GET  /swagar                      - Message de bienvenue personnalisé (JSON)
-    GET  /swagar/web                  - Page web de présentation Swagar
     POST /api/v1/scenario/generate     - Génère un scénario VR
     GET  /api/v1/scenario/{scenario_id} - Récupère un scénario sauvegardé
     GET  /api/v1/scenarios             - Liste tous les scénarios
@@ -33,7 +31,7 @@ from fastapi import FastAPI, HTTPException
 
 # , Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from vr_scenario_lib import (
@@ -321,126 +319,6 @@ async def health_check():
             else "unknown"
         ),
     )
-
-
-@app.get("/swagar", tags=["System"])
-async def swagar():
-    """Endpoint swagar - retourne un message de bienvenue personnalisé."""
-    return {
-        "message": "Swaggar ! Le serveur VR Scenario Library est opérationnel !",
-        "status": "success",
-        "timestamp": time.time(),
-    }
-
-
-@app.get("/swagar/web", response_class=HTMLResponse, tags=["System"])
-async def swagar_web():
-    """Endpoint swagar - retourne une page web de présentation."""
-    html_content = (
-        """<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swagar - VR Scenario Library</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
-            color: white;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-        }
-        .container {
-            max-width: 800px;
-            padding: 2rem;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            color: #ffd700;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        .swagar-message {
-            font-size: 1.5rem;
-            margin: 2rem 0;
-            padding: 1rem;
-            background-color: rgba(255, 215, 0, 0.2);
-            border-radius: 10px;
-            border: 2px solid #ffd700;
-        }
-        .timestamp {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-top: 1rem;
-        }
-        .status {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background-color: #28a745;
-            color: white;
-            border-radius: 20px;
-            margin-top: 1rem;
-        }
-        .vr-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        .api-info {
-            margin-top: 2rem;
-            padding: 1rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            text-align: left;
-        }
-        .api-info h3 {
-            color: #ffd700;
-            margin-top: 0;
-        }
-        .api-info code {
-            background-color: rgba(0, 0, 0, 0.3);
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="vr-icon">🥽</div>
-        <h1>VR Scenario Library - Swagar</h1>
-        
-        <div class="swagar-message">
-            <p>Swaggar ! Le serveur VR Scenario Library est opérationnel !</p>
-            <div class="status">Succès</div>
-            <div class="timestamp">Timestamp: """
-        + str(int(time.time()))
-        + """</div>
-        </div>
-        
-        <div class="api-info">
-            <h3>Informations API</h3>
-            <p>Cette page est générée par le serveur VR Scenario Library.</p>
-            <p>Vous pouvez accéder aux endpoints suivants:</p>
-            <ul>
-                <li><code>/health</code> - Vérifie l'état de santé du serveur</li>
-                <li><code>/swagar</code> - Retourne les informations Swagar en JSON</li>
-                <li><code>/api/v1/scenario/generate</code> - Génère un scénario VR</li>
-                <li><code>/api/v1/scenarios</code> - Liste tous les scénarios</li>
-            </ul>
-        </div>
-    </div>
-</body>
-</html>"""
-    )
-    return HTMLResponse(content=html_content)
 
 
 @app.post(
