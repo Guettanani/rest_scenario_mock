@@ -1,74 +1,44 @@
+# =============================================================================
+# .dockerignore — Contexte de build Docker (racine du projet)
+# =============================================================================
+
+# Frontend (build séparé dans frontend/Dockerfile)
+frontend/
+
+# Tests
+tests/
+
+# GitHub Actions
+.github/
+
 # Git
-.git
-.gitignore
+.git/
 
-# Python
-__pycache__
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
-dist/
-build/
-*.egg
+# Documentation
+*.md
+!README.md
 
-# Environnement virtuel
-venv/
-env/
-.venv/
+# Environnement
 .env
-!.env.example
+env/
+venv/
+.venv/
+
+# Node (le frontend a son propre .dockerignore)
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# Tests
-tests/
-.pytest_cache/
-htmlcov/
-.coverage
-coverage.xml
-
-# Documentation
-docs/
-*.md
-!README.md
-!USER_GUIDE.md
-
-# CI/CD
-.github/
 
 # Docker
-.dockerignore
 docker-compose*.yml
-
-# Autres
-*.log
-.DS_Store
-Thumbs.db
-
-# === Gros dossiers de données (montes via volumes au runtime) ===
-faiss_index/
-documents/
-logs/
-output/
-scenarios/
-
-# === Fichiers de donnees lourds ===
-*.pdf
-*.docx
-*.pkl
-*.faiss
-*.npy
-*.npz
-
-# === Jupyter Notebooks ===
-*.ipynb
-.ipynb_checkpoints/
-
-# === Fichiers temporaires ===
-*.tmp
-*.bak
+Dockerfile*
+.dockerignore

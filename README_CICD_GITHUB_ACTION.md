@@ -2,8 +2,14 @@
 
 # Pipeline CI/CD — `vr_scenario_lib_rest`
 
-Documentation technique complète du pipeline GitHub Actions, décrivant chaque
-étape, les prérequis de configuration, et le fonctionnement interne du workflow.
+Documentation technique complète des pipelines GitHub Actions du projet.
+
+## Workflows disponibles
+
+| Fichier | Description | Déclenchement |
+|---|---|---|
+| `.github/workflows/ci.yml` | Backend — tests, lint, build Python, Docker, deploy | push/PR sur main, develop |
+| `.github/workflows/frontend-cd.yml` | Frontend — lint, build React, tests, Docker, push | push/PR sur main |
 
 ---
 
@@ -142,7 +148,7 @@ Python supportées pour garantir la compatibilité ascendante et descendante.
 ```yaml
 strategy:
   matrix:
-    python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    python-version: ["3.10", "3.11", "3.12", "3.13"]
 ```
 
 Ce job est instancié **5 fois** en parallèle (une par version Python). Chaque

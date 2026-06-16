@@ -1,4 +1,18 @@
+# =============================================================================
+# Docker Compose — Full-Stack Frontend + Backend (Nginx reverse proxy)
+# =============================================================================
+# Usage:
+#   docker compose -f docker-compose.frontend.yml up --build -d
+#   docker compose -f docker-compose.frontend.yml down
+#
+# Frontend : http://localhost:3001  (nginx → SPA + /api/* → backend)
+# Backend  : http://localhost:8002  (FastAPI direct access)
+# =============================================================================
+
 services:
+  # ===========================================================================
+  # Backend — FastAPI REST server
+  # ===========================================================================
   backend:
     build:
       context: .
@@ -56,6 +70,9 @@ services:
     networks:
       - app-network
 
+  # ===========================================================================
+  # Frontend — Nginx serving compiled React SPA + reverse proxy for /api/*
+  # ===========================================================================
   frontend:
     build:
       context: ./frontend
@@ -76,10 +93,16 @@ services:
     networks:
       - app-network
 
+# ===========================================================================
+# Volumes persistants
+# ===========================================================================
 volumes:
   faiss-cache:
     driver: local
 
+# ===========================================================================
+# Réseau interne
+# ===========================================================================
 networks:
   app-network:
     name: vr-scenario-lib-app-network

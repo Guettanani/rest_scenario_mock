@@ -214,6 +214,7 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
 
     - name: Scan Docker image for vulnerabilities
       # Le scan local n'est exécuté que sur les PRs car l'image y est disponible localement

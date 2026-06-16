@@ -47,4 +47,4 @@ protobuf>=4.21.0
 # pyttsx3>=2.90
 # gtts>=2.5.0
 # pygame>=2.5.0  # Ou utilisez simpleaudio comme alternative légère
-python-multipart
+python-multipart>=0.0.9

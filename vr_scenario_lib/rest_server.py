@@ -8,16 +8,16 @@ Usage:
 
 Endpoints:
     GET  /health                        - Health check
-    POST /api/v1/scenario/generate      - Genere un scenario VR
-    GET  /api/v1/scenario/{scenario_id}  - Recupere un scenario sauvegarde
-    POST /api/v1/scenario/save          - Sauvegarde un scenario valide
-    GET  /api/v1/scenarios              - Liste tous les scenarios
+    POST /api/v1/scenario/generate      - Génère un scénario VR
+    GET  /api/v1/scenario/{scenario_id}  - Récupère un scénario sauvegardé
+    POST /api/v1/scenario/save          - Sauvegarde un scénario valide
+    GET  /api/v1/scenarios              - Liste tous les scénarios
     POST /api/v1/index/refresh          - Reconstruit l'index FAISS
-    GET  /api/v1/documents              - Liste les documents indexes
+    GET  /api/v1/documents              - Liste les documents indexés
     POST /api/v1/files/upload           - Upload un fichier document
-    GET  /api/v1/files                  - Liste les fichiers uploades
-    DELETE /api/v1/files/{file_id}      - Supprime un fichier uploade
-    POST /api/v1/assignments            - Cree une assignation scenario-apprenant
+    GET  /api/v1/files                  - Liste les fichiers uploadés
+    DELETE /api/v1/files/{file_id}      - Supprime un fichier uploadé
+    POST /api/v1/assignments            - Crée une assignation scenario-apprenant
     GET  /api/v1/assignments/me         - Liste les assignations de l'utilisateur
 """
 
