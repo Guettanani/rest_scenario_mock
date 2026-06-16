@@ -1,0 +1,125 @@
+services:
+  # ===========================================================================
+  # Backend — FastAPI REST server (production)
+  # ===========================================================================
+  backend:
+    image: karimnani/vr_scenario_lib_rest:latest
+    container_name: vr-scenario-api
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env.production
+    environment:
+      # LLM / embedding secrets (provided by env_file or host env)
+      - HF_TOKEN=${HF_TOKEN:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_EMBEDDING_API_KEY=${OPENROUTER_EMBEDDING_API_KEY:-}
+
+      # Non-secret defaults
+      - OPENROUTER_API_URL=${OPENROUTER_API_URL:-https://openrouter.ai/api/v1/chat/completions}
+      - OPENROUTER_EMBEDDING_API_URL=${OPENROUTER_EMBEDDING_API_URL:-https://openrouter.ai/api/v1/embeddings}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-huggingface}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LLM_MODEL=${LLM_MODEL:-meta-llama/llama-3.3-70b-instruct:free}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      - DEVICE=${DEVICE:-cpu}
+      - HF_INFERENCE_ENDPOINT=${HF_INFERENCE_ENDPOINT:-https://api-inference.hf.co}
+
+      # Runtime paths inside container
+      - DOCS_DIR=/app/documents
+      - FAISS_DIR=/app/faiss_index
+      - SCENARIOS_DIR=/app/scenarios
+    volumes:
+      # Documents input directory (set :rw if you want runtime upload persistence)
+      - ./documents:/app/documents:ro
+      - output:/app/output
+      - scenarios:/app/scenarios
+      - faiss-cache:/app/faiss_index
+    command:
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+      - "--docs-dir"
+      - "/app/documents"
+      - "--faiss-dir"
+      - "/app/faiss_index"
+      - "--scenarios-dir"
+      - "/app/scenarios"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    stop_grace_period: 30s
+    tty: false
+    stdin_open: false
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: "2.0"
+        reservations:
+          memory: 3G
+          cpus: "1.0"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    networks:
+      - app-network
+
+  # ===========================================================================
+  # Frontend — Nginx serving SPA + reverse proxy for /api/*
+  # ===========================================================================
+  frontend:
+    image: karimnani/scenia-frontend:latest
+    container_name: vr-scenario-frontend
+    ports:
+      - "3001:80"
+    env_file:
+      - .env.production
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    tty: false
+    stdin_open: false
+    volumes:
+      - type: tmpfs
+        target: /var/cache/nginx
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    networks:
+      - app-network
+
+# ===========================================================================
+# Volumes persistants
+# ===========================================================================
+volumes:
+  faiss-cache:
+    driver: local
+  output:
+    driver: local
+  scenarios:
+    driver: local
+
+# ===========================================================================
+# Réseau interne
+# ===========================================================================
+networks:
+  app-network:
+    name: vr-scenario-lib-app-network
+    driver: bridge
