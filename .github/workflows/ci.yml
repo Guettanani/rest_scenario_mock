@@ -133,7 +133,7 @@ jobs:
 
   #   - name: Extract metadata
   #     id: meta
-  #     uses: docker/metadata-action@v5
+  #     uses: docker/metadata-action@v6
   #     with:
   #       images: ${{ secrets.DOCKER_USERNAME }}/vr_scenario_lib_rest
   #       tags: |
@@ -187,7 +187,7 @@ jobs:
 
     - name: Extract metadata
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v6
       with:
         # Utilise une valeur de repli (ex: votre pseudo) si le secret est vide (cas des PRs Dependabot)
         images: ${{ secrets.DOCKER_USERNAME || 'karimnani' }}/vr_scenario_lib_rest
