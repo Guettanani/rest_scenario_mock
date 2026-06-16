@@ -23,20 +23,20 @@ Endpoints:
 
 from __future__ import annotations
 
+import json as _json
 import logging
 import os
 import shutil
-import uuid
-import json as _json
 
 # import signal
 # import sys
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, File, HTTPException, UploadFile
 
 # , Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -547,7 +547,9 @@ async def upload_file(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
 
         file_size = dest.stat().st_size
-        logger.info("Fichier uploade: %s (%d bytes, id=%s)", file.filename, file_size, file_id)
+        logger.info(
+            "Fichier uploade: %s (%d bytes, id=%s)", file.filename, file_size, file_id
+        )
 
         return FileUploadResponse(
             success=True,
@@ -609,7 +611,9 @@ async def delete_file(file_id: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post("/api/v1/scenario/save", response_model=SaveScenarioResponse, tags=["Scenarios"])
+@app.post(
+    "/api/v1/scenario/save", response_model=SaveScenarioResponse, tags=["Scenarios"]
+)
 async def save_scenario(request: SaveScenarioRequest):
     """Sauvegarde un scenario valide dans l'historique."""
     try:
@@ -645,7 +649,9 @@ async def save_scenario(request: SaveScenarioRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.post("/api/v1/assignments", response_model=AssignmentResponse, tags=["Assignments"])
+@app.post(
+    "/api/v1/assignments", response_model=AssignmentResponse, tags=["Assignments"]
+)
 async def create_assignment(request: AssignmentRequest):
     """Cree une assignation scenario-apprenant."""
     try:
