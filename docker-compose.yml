@@ -1,106 +1,12 @@
-# =============================================================================
-# Docker Compose pour VR Scenario Library
-# =============================================================================
-
-version: "3.8"
-
 services:
-  # ===========================================================================
-  # Service principal : VR Scenario Library
-  # ===========================================================================
-  vr-scenario-lib:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: vr-scenario-lib:latest
-    container_name: vr-scenario-lib
-    
-    environment:
-      - HF_TOKEN=${HF_TOKEN}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - OPENROUTER_EMBEDDING_API_KEY=${OPENROUTER_EMBEDDING_API_KEY}
-      - OPENROUTER_API_URL=${OPENROUTER_API_URL:-https://openrouter.ai/api/v1/chat/completions}
-      - OPENROUTER_EMBEDDING_API_URL=${OPENROUTER_EMBEDDING_API_URL:-https://openrouter.ai/api/v1/embeddings}
-      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-huggingface}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - LLM_MODEL=${LLM_MODEL:-meta-llama/llama-3.2-3b-instruct:free}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
-      - DEVICE=${DEVICE:-cpu}
-      - HF_INFERENCE_ENDPOINT=${HF_INFERENCE_ENDPOINT:-https://api-inference.hf.co}
-    
-    volumes:
-      # Monter le dossier de documents
-      - ./documents:/app/documents:ro
-      # Monter le dossier de sortie
-      - ./output:/app/output
-      # Persister le cache FAISS
-      - faiss-cache:/app/faiss_index
-    
-    # Commande par défaut (peut être overridée)
-    command: ["--help"]
-    
-    # Limites de ressources
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-          cpus: "2.0"
-        reservations:
-          memory: 2G
-          cpus: "1.0"
-    
-    # Politique de redémarrage
-    restart: unless-stopped
-    
-    # Healthcheck
-    healthcheck:
-      test: ["CMD", "python", "-c", "import vr_scenario_lib; print('OK')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
-  # ===========================================================================
-  # Service optionnel : Tests
-  # ===========================================================================
-  test:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: vr-scenario-lib:latest
-    container_name: vr-scenario-lib-test
-    
-    environment:
-      - HF_TOKEN=${HF_TOKEN:-hf_test_token}
-      - LOG_LEVEL=DEBUG
-    
-    volumes:
-      - ./tests:/app/tests:ro
-      - ./documents:/app/documents:ro
-    
-    command: >
-      sh -c "pip install pytest pytest-mock &&
-             python -m pytest tests/ -v --tb=short"
-    
-    profiles:
-      - test
-
-  # ===========================================================================
-  # Service gRPC
-  # ===========================================================================
-  grpc-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: vr-scenario-lib:latest
-    container_name: vr-scenario-lib-grpc
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-      - 8.8.4.4
+      dockerfile: Dockerfile.rest
+    image: vr-scenario-lib:rest-latest
+    container_name: vr-scenario-lib-backend
     ports:
-      - "50051:50051"
-    
+      - "8002:8000"
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -113,50 +19,68 @@ services:
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
       - DEVICE=${DEVICE:-cpu}
       - HF_INFERENCE_ENDPOINT=${HF_INFERENCE_ENDPOINT:-https://api-inference.hf.co}
-    
+      - DOCS_DIR=/app/documents
+      - FAISS_DIR=/app/faiss_index
+      - SCENARIOS_DIR=/app/scenarios
     volumes:
       - ./documents:/app/documents:ro
       - ./output:/app/output
+      - ./scenarios:/app/scenarios
       - faiss-cache:/app/faiss_index
-    
-    entrypoint: >
-      sh -c "pip install --break-system-packages grpcio grpcio-tools protobuf &&
-             python generate_grpc.py &&
-             mkdir -p /app/vr_scenario_lib &&
-             cp /app/__init__.py /app/config.py /app/documents.py /app/llm.py /app/pipeline.py /app/scenario.py /app/vectorstore.py /app/prompts.py /app/json_converter.py /app/vr_scenario_lib/ &&
-             export PYTHONPATH=/app:$PYTHONPATH &&
-             python grpc_server.py --port 50051 --docs-dir /app/documents"
-    
+    command:
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+      - "--docs-dir"
+      - "/app/documents"
+      - "--faiss-dir"
+      - "/app/faiss_index"
+      - "--scenarios-dir"
+      - "/app/scenarios"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
           memory: 4G
           cpus: "2.0"
-    
+        reservations:
+          memory: 2G
+          cpus: "1.0"
     restart: unless-stopped
-    
-    healthcheck:
-      test: ["CMD", "python", "-c", "import grpc; print('OK')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    
-    profiles:
-      - grpc
+    networks:
+      - app-network
 
-# ===========================================================================
-# Volumes persistants
-# ===========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: vr-scenario-lib:frontend-latest
+    container_name: vr-scenario-lib-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - app-network
+
 volumes:
   faiss-cache:
     driver: local
-    labels:
-      - "com.vr-scenario-lib.description=Cache FAISS pour l'indexation vectorielle"
 
-# ===========================================================================
-# Réseaux (optionnel)
-# ===========================================================================
 networks:
-  default:
-    name: vr-scenario-lib-network
+  app-network:
+    name: vr-scenario-lib-app-network
     driver: bridge
