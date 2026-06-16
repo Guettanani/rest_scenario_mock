@@ -7,18 +7,27 @@ Usage:
     python rest_server.py [--port 8000] [--host 0.0.0.0] [--docs-dir ./documents] [--faiss-dir faiss_index]
 
 Endpoints:
-    GET  /health                       - Health check
-    POST /api/v1/scenario/generate     - Génère un scénario VR
-    GET  /api/v1/scenario/{scenario_id} - Récupère un scénario sauvegardé
-    GET  /api/v1/scenarios             - Liste tous les scénarios
-    POST /api/v1/index/refresh         - Reconstruit l'index FAISS
-    GET  /api/v1/documents             - Liste les documents indexés
+    GET  /health                        - Health check
+    POST /api/v1/scenario/generate      - Genere un scenario VR
+    GET  /api/v1/scenario/{scenario_id}  - Recupere un scenario sauvegarde
+    POST /api/v1/scenario/save          - Sauvegarde un scenario valide
+    GET  /api/v1/scenarios              - Liste tous les scenarios
+    POST /api/v1/index/refresh          - Reconstruit l'index FAISS
+    GET  /api/v1/documents              - Liste les documents indexes
+    POST /api/v1/files/upload           - Upload un fichier document
+    GET  /api/v1/files                  - Liste les fichiers uploades
+    DELETE /api/v1/files/{file_id}      - Supprime un fichier uploade
+    POST /api/v1/assignments            - Cree une assignation scenario-apprenant
+    GET  /api/v1/assignments/me         - Liste les assignations de l'utilisateur
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import shutil
+import uuid
+import json as _json
 
 # import signal
 # import sys
@@ -27,7 +36,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 
 # , Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -249,6 +258,70 @@ class DocumentsResponse(BaseModel):
     total: int = 0
 
 
+class FileInfo(BaseModel):
+    """Information sur un fichier uploade."""
+
+    id: str
+    filename: str
+    path: str
+    size_bytes: int
+    extension: str
+    status: str = "processed"
+
+
+class FileUploadResponse(BaseModel):
+    """Reponse d'upload de fichier."""
+
+    success: bool
+    file: FileInfo
+
+
+class FilesResponse(BaseModel):
+    """Liste des fichiers uploades."""
+
+    files: list[FileInfo] = []
+    total: int = 0
+
+
+class SaveScenarioRequest(BaseModel):
+    """Requete de sauvegarde d'un scenario valide."""
+
+    titre: str = ""
+    description: str = ""
+    difficulte: str = "intermediaire"
+    duree_totale: int = 30
+    environnement: str = ""
+    etapes: list[dict[str, Any]] = []
+    parametres_techniques: dict[str, Any] = {}
+    etat_initial: dict[str, Any] = {}
+
+
+class SaveScenarioResponse(BaseModel):
+    """Reponse de sauvegarde de scenario."""
+
+    success: bool
+    scenario_id: str = ""
+    message: str = ""
+
+
+class AssignmentRequest(BaseModel):
+    """Requete de creation d'une assignation."""
+
+    user_id: int
+    scenario_id: int
+
+
+class AssignmentResponse(BaseModel):
+    """Reponse de creation d'assignation."""
+
+    success: bool
+    session_id: str = ""
+    scenario_id: int = 0
+    qr_url: str = ""
+    config_url: str = ""
+    created_at: str = ""
+
+
 # =============================================================================
 # Gestionnaire de durée de vie (recommandé pour les nouvelles versions de FastAPI)
 # =============================================================================
@@ -458,6 +531,151 @@ async def get_documents():
     except Exception as exc:
         logger.error("Erreur get documents: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/v1/files/upload", response_model=FileUploadResponse, tags=["Files"])
+async def upload_file(file: UploadFile = File(...)):
+    """Upload un fichier vers le repertoire documents."""
+    try:
+        docs_path = Path(_server_state["docs_dir"])
+        docs_path.mkdir(parents=True, exist_ok=True)
+
+        file_id = str(uuid.uuid4())[:8]
+        dest = docs_path / file.filename
+
+        with dest.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        file_size = dest.stat().st_size
+        logger.info("Fichier uploade: %s (%d bytes, id=%s)", file.filename, file_size, file_id)
+
+        return FileUploadResponse(
+            success=True,
+            file=FileInfo(
+                id=file_id,
+                filename=file.filename,
+                path=str(dest),
+                size_bytes=file_size,
+                extension=dest.suffix.lower(),
+                status="processed",
+            ),
+        )
+    except Exception as exc:
+        logger.error("Erreur upload: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/v1/files", response_model=FilesResponse, tags=["Files"])
+async def list_files():
+    """Liste les fichiers uploades dans le repertoire documents."""
+    try:
+        files: list[FileInfo] = []
+        docs_path = Path(_server_state["docs_dir"])
+        if docs_path.exists():
+            for idx, f in enumerate(docs_path.rglob("*")):
+                if f.is_file():
+                    files.append(
+                        FileInfo(
+                            id=str(idx),
+                            filename=f.name,
+                            path=str(f),
+                            size_bytes=f.stat().st_size,
+                            extension=f.suffix.lower(),
+                            status="processed",
+                        )
+                    )
+        return FilesResponse(files=files, total=len(files))
+    except Exception as exc:
+        logger.error("Erreur list files: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.delete("/api/v1/files/{file_id}", tags=["Files"])
+async def delete_file(file_id: str):
+    """Supprime un fichier uploade par son ID (index ou nom)."""
+    try:
+        docs_path = Path(_server_state["docs_dir"])
+        if docs_path.exists():
+            for idx, f in enumerate(docs_path.rglob("*")):
+                if f.is_file() and (str(idx) == file_id or f.name == file_id):
+                    f.unlink()
+                    logger.info("Fichier supprime: %s", f.name)
+                    return {"success": True}
+        raise HTTPException(status_code=404, detail=f"Fichier '{file_id}' introuvable.")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Erreur delete file: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/v1/scenario/save", response_model=SaveScenarioResponse, tags=["Scenarios"])
+async def save_scenario(request: SaveScenarioRequest):
+    """Sauvegarde un scenario valide dans l'historique."""
+    try:
+        scenario_id = str(uuid.uuid4())[:12]
+        scenario_json = {
+            "titre": request.titre,
+            "description": request.description,
+            "difficulte": request.difficulte,
+            "duree_totale": request.duree_totale,
+            "environnement": request.environnement,
+            "etapes": request.etapes,
+            "parametres_techniques": request.parametres_techniques,
+            "etat_initial": request.etat_initial,
+        }
+
+        scenarios_dir = Path(_server_state["scenarios_dir"])
+        scenarios_dir.mkdir(parents=True, exist_ok=True)
+        scenario_file = scenarios_dir / f"{scenario_id}.json"
+        scenario_file.write_text(
+            _json.dumps(scenario_json, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        logger.info("Scenario sauvegarde: %s (id=%s)", request.titre, scenario_id)
+
+        return SaveScenarioResponse(
+            success=True,
+            scenario_id=scenario_id,
+            message="Scenario sauvegarde avec succes",
+        )
+    except Exception as exc:
+        logger.error("Erreur save scenario: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/v1/assignments", response_model=AssignmentResponse, tags=["Assignments"])
+async def create_assignment(request: AssignmentRequest):
+    """Cree une assignation scenario-apprenant."""
+    try:
+        session_id = str(uuid.uuid4())[:16]
+        now = time.strftime("%Y-%m-%dT%H:%M:%S")
+
+        logger.info(
+            "Assignation creee: user=%d, scenario=%d, session=%s",
+            request.user_id,
+            request.scenario_id,
+            session_id,
+        )
+
+        return AssignmentResponse(
+            success=True,
+            session_id=session_id,
+            scenario_id=request.scenario_id,
+            qr_url="",
+            config_url="",
+            created_at=now,
+        )
+    except Exception as exc:
+        logger.error("Erreur create assignment: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.get("/api/v1/assignments/me", tags=["Assignments"])
+async def list_my_assignments():
+    """Liste les assignations de l'utilisateur courant."""
+    return []
 
 
 # =============================================================================
