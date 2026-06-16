@@ -3,6 +3,7 @@
 import json
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from vr_scenario_lib.scenario_store import (
